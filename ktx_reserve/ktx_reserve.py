@@ -28,7 +28,6 @@ from __future__ import annotations
 
 import argparse
 import getpass
-import json
 import importlib
 import math
 import os
@@ -111,11 +110,16 @@ def notify(title: str, body: str) -> None:
     print("\a", end="", flush=True)
     if sys.platform != "darwin":
         return
-    script = f"display notification {json.dumps(body)} with title {json.dumps(title)} sound name \"Glass\""
+    script = '''on run argv
+    display notification (item 2 of argv) with title (item 1 of argv) sound name "Glass"
+end run'''
     try:
-        subprocess.run(["osascript", "-e", script], check=False, timeout=5)
-    except Exception:
-        pass
+        result = subprocess.run(["osascript", "-e", script, title, body],
+                                check=False, timeout=5, capture_output=True)
+        if result.returncode:
+            log("맥 알림 표시 실패. 터미널의 예약 결과를 확인하세요.")
+    except (OSError, subprocess.TimeoutExpired):
+        log("맥 알림을 표시하지 못했습니다. 터미널의 예약 결과를 확인하세요.")
 
 
 # --------------------------------------------------------------------------- 좌석 판정

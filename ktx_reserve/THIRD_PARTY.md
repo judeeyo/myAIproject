@@ -17,7 +17,7 @@ Its generated package version is `0.0.1.dev253+g030576a6b` because release tags 
 not present in the fork; the full commit is the identity used for installation.
 This is not a claim that it is the deleted PyPI 0.6.1 distribution.
 
-Installation and 27 tests with the real library pass. HTTP responses in tests
+Installation and 29 tests with the real library pass. HTTP responses in tests
 are fixtures. Separately, a live CLI --check succeeded on 2026-11-04 13:00 KST:
 station master and 10 Seoul-to-Dongdaegu trains for 2026-11-06 were returned.
 The previously blocked smart.letskorail.com domain is now reachable through the

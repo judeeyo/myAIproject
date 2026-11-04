@@ -159,5 +159,31 @@ class ReservationTests(unittest.TestCase):
             self.assertEqual(app.main(self.argv[:-1]), 2)
 
 
+class NotificationTests(unittest.TestCase):
+    def test_unicode_quotes_and_newlines_are_arguments_not_script(self):
+        title = 'KTX "예약" 성공'
+        body = '서울→동대구\\좌석\n15A·15B'
+        with patch.object(app.sys, "platform", "darwin"), \
+             patch.object(app.subprocess, "run", return_value=subprocess.CompletedProcess([], 0)) as run, \
+             contextlib.redirect_stdout(io.StringIO()):
+            app.notify(title, body)
+        args = run.call_args.args[0]
+        self.assertEqual(args[-2:], [title, body])
+        self.assertNotIn(title, args[2])
+        self.assertNotIn(body, args[2])
+        self.assertIn("on run argv", args[2])
+
+    def test_notification_failures_do_not_raise(self):
+        for outcome in (subprocess.CompletedProcess([], 1), subprocess.TimeoutExpired("osascript", 5)):
+            with self.subTest(outcome=outcome), patch.object(app.sys, "platform", "darwin"), \
+                 patch.object(app.subprocess, "run") as run, contextlib.redirect_stdout(io.StringIO()) as output:
+                if isinstance(outcome, Exception):
+                    run.side_effect = outcome
+                else:
+                    run.return_value = outcome
+                app.notify("예약 결과", "예약 내역 확인")
+                self.assertIn("터미널의 예약 결과", output.getvalue())
+
+
 if __name__ == "__main__":
     unittest.main()
