@@ -365,31 +365,41 @@ class Bot:
         limit = rsv.buy_limit.strftime("%H:%M") if rsv.buy_limit else "확인 필요"
         log(f"예약 성공! {label} {train.dep_name}→{train.arr_name} | 좌석 {seat_text} | "
             f"{rsv.price:,}원 | 예약번호 {rsv.pnr_no} | 결제기한 {limit}")
-        notify("KTX 예약 성공", f"{label} {seat_text}. 결제기한 {limit}까지 결제하세요.")
+        notify("KTX 예약 성공", f"{label} {seat_text}. " +
+               ("자동 결제를 시도합니다." if self.card else f"결제기한 {limit}까지 결제하세요."))
+
+        outcome_title = "KTX 예약 성공"
+        outcome_body = f"결제기한 {limit}. 코레일톡에서 예약 내역을 확인하고 결제하세요."
+        if self.card:
+            try:
+                self.korail.reservations.pay(rsv, self.card)
+            except Exception:
+                outcome_title = "KTX 결제 상태 확인 필요"
+                outcome_body = f"자동 결제 결과를 확인하지 못했습니다. 코레일톡에서 결제·예약 상태를 확인하세요 (기한 {limit})."
+                log(outcome_body + " 예약·결제를 자동으로 다시 시도하지 않습니다.")
+                notify(outcome_title, outcome_body)
+            else:
+                outcome_title = "KTX 결제 완료"
+                outcome_body = "결제 요청이 정상 처리됐습니다. 코레일톡 앱의 승차권 확인에서 표를 확인하세요."
+                log(outcome_body)
+                notify(outcome_title, f"{label}. {outcome_body}")
+        else:
+            log(f"{limit}까지 코레일톡 앱에서 결제하지 않으면 자동 취소됩니다.")
+
         # Notification failure must never restart the reservation loop.
         try:
             from discord_notify import send
             delivered = send(
-                f"🚄 KTX 예약 성공! {c.date} {train.dep_name}→{train.arr_name}\n"
+                f"🚄 {outcome_title}! {c.date} {train.dep_name}→{train.arr_name}\n"
                 f"{label} · {self.total}명 · {seat_text}\n"
-                f"결제기한 {limit}. 코레일톡에서 예약 내역을 확인하고 결제하세요.", c.state_dir)
+                f"{outcome_body}", c.state_dir)
             if delivered is True:
-                log("디스코드 예약 성공 알림 전송 완료")
+                log("디스코드 결과 알림 전송 완료")
             elif delivered is False:
                 log("디스코드 알림 전송 실패. 예약은 다시 시도하지 않습니다. 앱에서 확인하세요.")
         except Exception:
             log("디스코드 알림 처리 실패. 앱에서 예약 내역을 확인하세요.")
 
-        if self.card:
-            try:
-                self.korail.reservations.pay(rsv, self.card)
-                log("결제 완료! 코레일톡 앱의 승차권 확인에서 표를 확인하세요.")
-                notify("KTX 결제 완료", f"{label} 발권되었습니다.")
-            except Exception:
-                log(f"결제 완료 여부를 확인하지 못했습니다. 예약을 다시 시도하지 않습니다. 앱에서 결제·예약 상태를 확인하세요 (기한 {limit}).")
-                notify("KTX 결제 확인 필요", "앱에서 결제·예약 상태를 확인하세요.")
-        else:
-            log(f"{limit}까지 코레일톡 앱에서 결제하지 않으면 자동 취소됩니다.")
         return True
 
     def safe_cancel(self, rsv) -> None:
@@ -472,11 +482,19 @@ def validate(args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
 
 
 def ask_card() -> Card:
-    print("\n결제 카드 정보 (화면에 표시되지 않고 파일로 저장하지 않습니다)")
-    number = re.sub(r"\D", "", getpass.getpass("카드번호 16자리: "))
-    expire = re.sub(r"\D", "", input("유효기간 YYMM (예: 2812 = 2028년 12월): "))
+    print("\n자동 결제: 개인카드 정보를 입력합니다. 화면에 표시하거나 파일에 저장하지 않습니다.")
+    number = re.sub(r"[ -]", "", getpass.getpass("카드번호: "))
+    expire = getpass.getpass("유효기간 YYMM (예: 2812 = 2028년 12월): ").strip()
     password = getpass.getpass("카드 비밀번호 앞 2자리: ").strip()
-    verify = re.sub(r"\D", "", getpass.getpass("생년월일 YYMMDD: "))
+    verify = getpass.getpass("카드 소유자 생년월일 YYMMDD: ").strip()
+    if not re.fullmatch(r"[0-9]{13,19}", number):
+        raise Stop("카드번호 형식을 확인하세요. 개인카드 번호는 숫자 13~19자리여야 합니다.")
+    if not re.fullmatch(r"[0-9]{4}", expire) or not 1 <= int(expire[2:]) <= 12:
+        raise Stop("유효기간은 YYMM 네 자리로 입력하세요. 월은 01~12여야 합니다.")
+    if not re.fullmatch(r"[0-9]{2}", password):
+        raise Stop("카드 비밀번호 앞 두 자리는 숫자 두 자리로 입력하세요.")
+    if not re.fullmatch(r"[0-9]{6}", verify):
+        raise Stop("카드 소유자 생년월일은 YYMMDD 여섯 자리로 입력하세요.")
     return Card(number=number, password=password, verify_number=verify, expire=expire)
 
 

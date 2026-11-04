@@ -150,6 +150,16 @@ class ReservationTests(unittest.TestCase):
         self.assertTrue(self.bot.try_reserve(self.train))
         self.client.reservations.create.assert_called_once()
         self.client.reservations.pay.assert_called_once()
+        self.assertIn("결제 상태 확인 필요", self.discord_send.call_args.args[0])
+
+    def test_successful_payment_notifies_after_payment(self):
+        self.cfg.demo = False
+        self.bot.card = object()
+        self.client.reservations.pay = Mock(return_value=None)
+        self.assertTrue(self.bot.try_reserve(self.train))
+        self.client.reservations.pay.assert_called_once()
+        self.assertIn("결제 완료", self.discord_send.call_args.args[0])
+        self.assertNotIn("결제하세요", self.discord_send.call_args.args[0])
 
     def test_train_filter(self):
         self.cfg.trains = {"999"}
@@ -177,6 +187,27 @@ class ReservationTests(unittest.TestCase):
              patch("builtins.input", side_effect=AssertionError("must not prompt")), \
              contextlib.redirect_stderr(io.StringIO()):
             self.assertEqual(app.main(self.argv[:-1]), 2)
+
+
+class CardInputTests(unittest.TestCase):
+    def test_personal_card_fields_and_hidden_input(self):
+        app.load_backend(True)
+        # Public payment-provider test number; no real card or network is used.
+        values = ["4242-4242-4242-4242", "2812", "12", "900101"]
+        with patch.object(app.getpass, "getpass", side_effect=values), \
+             patch("builtins.input", side_effect=AssertionError("card fields must be hidden")), \
+             contextlib.redirect_stdout(io.StringIO()) as output:
+            card = app.ask_card()
+        self.assertEqual(card.number, "4242424242424242")
+        self.assertEqual(card.expire, "2812")
+        self.assertEqual(card.password, "12")
+        self.assertEqual(card.verify_number, "900101")
+        self.assertNotIn("4242", output.getvalue())
+
+    def test_invalid_card_expiry_stops_before_booking(self):
+        with patch.object(app.getpass, "getpass", side_effect=["4242424242424242", "2813", "12", "900101"]), \
+             contextlib.redirect_stdout(io.StringIO()), self.assertRaises(app.Stop):
+            app.ask_card()
 
 
 class NotificationTests(unittest.TestCase):
