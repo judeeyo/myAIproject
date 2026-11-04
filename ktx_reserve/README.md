@@ -1,3 +1,15 @@
+# KTX 실행 패키지
+
+처음 사용하는 분은 **[사용설명서.txt](사용설명서.txt)**를 먼저 읽으세요.
+
+- Windows: `setup.bat` 설치 후 `start_booking.bat` 실행
+- Mac: `bash setup.sh` 설치 후 `bash start_booking.sh` 실행
+- 기본값: 2026-11-06 서울→동대구, 13:49~13:58, 일반실 성인 2명, 자동 결제 포함
+- 시작 파일에 열차번호 제한을 넣지 않았습니다. 날짜·시간대로 대상을 고릅니다.
+- 실제 카드 결제와 Windows 실기기 실행은 미검증입니다.
+
+---
+
 # KTX 빈자리 자동 예매
 
 Python 3.11 이상에서 실행하는 터미널 프로그램입니다. 출발역·도착역·날짜·시간대·인원을 지정하면 조회 결과에서 원하는 열차와 좌석을 찾아 예약합니다. 기본 결제 방식은 코레일톡 앱에서 직접 결제하는 것입니다.
@@ -80,7 +92,7 @@ bash run.sh --dep 서울 --arr 동대구 --date 2026-11-06 --from 13:00 --to 15:
 실제 카드 청구·발권은 아직 검증하지 않았습니다. 법인카드 입력 UI는 지원하지 않습니다.
 
 ```bash
-caffeinate -i bash run.sh --dep 서울 --arr 동대구 --date 2026-11-06 --from 13:49 --to 13:58 --trains 39,41 --adult 2 --seat general-only --pay
+caffeinate -i bash run.sh --dep 서울 --arr 동대구 --date 2026-11-06 --from 13:49 --to 13:58 --adult 2 --seat general-only --pay
 ```
 
 결제 성공 응답을 받으면 결과 알림을 표시하고 종료합니다. 설정한 디스코드에도 최종 결과를 보냅니다.
@@ -116,7 +128,7 @@ ZIP을 압축 해제한 폴더에서 PowerShell을 열고 다음을 실행합니
 설치 후 실제 예약 명령 예시:
 
 ```powershell
-.\run.bat --dep 서울 --arr 동대구 --date 2026-11-06 --from 13:49 --to 13:58 --trains 39,41 --adult 2 --seat general-only --interval-min 1 --interval-max 2
+.\run.bat --dep 서울 --arr 동대구 --date 2026-11-06 --from 13:49 --to 13:58 --adult 2 --seat general-only --interval-min 1 --interval-max 2
 ```
 
 회원번호와 비밀번호는 터미널에서 입력합니다. 자동 결제는 하지 않습니다.

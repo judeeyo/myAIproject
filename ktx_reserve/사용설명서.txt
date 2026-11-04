@@ -1,0 +1,101 @@
+﻿KTX 자동 예약·결제 실행 설명서
+
+[이번 ZIP의 기본 설정]
+- 서울 → 동대구 / 2026년 11월 6일
+- 출발 시간: 13:49 ~ 13:58
+- 성인 2명 / 일반실만
+- 열차번호 제한 없음: 해당 날짜·시간대에 맞는 KTX를 대상으로 합니다.
+- 조회 간격 1~2초(서버 응답 시간 별도)
+- 한 편에 2석 예약되면 개인카드 결제를 한 번 시도하고 종료합니다.
+- 붙은 자리 제한은 없습니다. 떨어진 2석도 예약합니다.
+- 실제 카드 결제는 미검증입니다. 완료 후 코레일톡 승차권을 확인하세요.
+
+[Windows 처음 설치]
+1. 시작 메뉴에서 cmd를 열어 아래 명령을 각각 실행합니다.
+
+winget install --id Python.Python.3.13 -e --source winget --accept-source-agreements --accept-package-agreements
+winget install --id Git.Git -e --source winget --accept-source-agreements --accept-package-agreements
+
+2. 설치 후 cmd를 닫고 다시 엽니다. 확인 명령:
+py -3.13 --version
+git --version
+
+winget이 없으면 https://www.python.org/downloads/windows/ 에서 Python 3.13,
+https://git-scm.com/download/win 에서 Git을 설치합니다.
+Python 설치 때 Add python.exe to PATH를 체크합니다.
+
+3. 이 ZIP을 먼저 압축 해제합니다. ZIP 안에서 실행하지 마세요.
+setup.bat, run.bat가 보이는 폴더에 들어가 탐색기 주소창에 cmd를 입력합니다.
+열린 cmd에서 실행:
+setup.bat
+
+4. 설치와 자동 테스트가 오류 없이 끝나면 실행:
+start_booking.bat
+
+start_booking.bat를 더블클릭해 실행해도 됩니다.
+
+[Mac 설치·실행]
+Python 3.11 이상(3.13 권장)과 Git이 필요합니다.
+https://www.python.org/downloads/macos/ 에서 Python을 설치할 수 있습니다.
+프로그램 폴더에서 터미널을 열고 다음을 순서대로 실행합니다.
+bash setup.sh
+bash start_booking.sh
+
+설치 스크립트는 Homebrew 및 공식 설치 경로에서 Python을 찾습니다.
+기존 Python이 먼저 잡히면 다음처럼 가상환경을 직접 만든 뒤 설치하세요.
+/opt/homebrew/bin/python3.13 -m venv .venv
+source .venv/bin/activate
+bash setup.sh
+
+[로그인·개인카드 입력]
+실행하면 회원번호, 코레일 비밀번호, 개인카드 정보를 터미널에서 묻습니다.
+카드번호 / 유효기간 YYMM / 카드 비밀번호 앞 2자리 / 소유자 생년월일 YYMMDD를 입력하세요.
+예: 카드에 유효기간 12/28이 쓰여 있으면 2812를 입력합니다.
+비밀번호와 카드 정보는 입력해도 화면에 표시되지 않으며 파일에 저장하지 않습니다.
+카드 정보·웹훅 주소 등 비밀값은 채팅에 보내지 마세요.
+법인카드 전용 입력 기능은 지원하지 않습니다.
+
+[날짜·시간·인원 변경]
+Windows는 start_booking.bat를 우클릭해 편집/메모장으로 엽니다.
+Mac은 start_booking.sh를 텍스트 편집기로 엽니다.
+다음 값을 바꿔 저장하면 됩니다.
+--date 2026-11-06 : 출발 날짜
+--from 13:49 --to 13:58 : 출발 시간 범위
+--adult 2 : 성인 인원
+--seat general-only : 일반실만
+--pay : 예약 후 자동 결제. 예약만 하려면 이 옵션을 지우세요.
+--adjacent : 붙은 자리만 원할 때 추가합니다.
+기본 실행 파일에는 특정 열차번호를 지정하는 옵션을 넣지 않았습니다.
+
+[직접 명령 입력: Windows]
+run.bat --dep 서울 --arr 동대구 --date 2026-11-06 --from 13:49 --to 13:58 --adult 2 --seat general-only --interval-min 1 --interval-max 2 --pay
+PowerShell에서는 명령 앞에 .\를 붙여 .\run.bat ... 으로 실행합니다.
+
+[선택: Discord 휴대폰 알림]
+Discord 본인 서버의 텍스트 채널: 채널 편집 → 연동 → 웹훅 → 새 웹훅 → URL 복사.
+Windows cmd:
+discord.bat --setup
+discord.bat --test
+Mac:
+.venv/bin/python discord_notify.py --setup
+.venv/bin/python discord_notify.py --test
+
+설정 명령에서 복사한 URL을 입력합니다. 화면에는 표시되지 않습니다.
+--test는 실제 Discord 채널에 시험 메시지를 보냅니다. 휴대폰 수신까지 확인하세요.
+휴대폰 Discord 알림 권한과 해당 채널의 '모든 메시지' 알림을 켜세요.
+PC에서 Discord를 사용 중이면 모바일 푸시가 지연될 수 있습니다.
+설정하지 않으면 Discord 전송 없이 예약·결제를 실행합니다.
+성공 또는 결제 상태 확인 필요 등 최종 결과를 보내며 카드정보·예약번호는 보내지 않습니다.
+
+[실행 중]
+PC와 터미널을 켜두고 절전 모드를 해제하세요. Mac은 덮개를 열어두세요.
+중단하려면 Ctrl+C를 누릅니다.
+예약·결제 요청 결과가 불명확하면 자동 재시도하지 않고 종료합니다.
+오류 뒤 재실행하기 전에 코레일톡에서 승차권·예약·결제 상태부터 확인하세요.
+알림 실패만으로 예약 실패를 뜻하지 않습니다.
+
+[확인된 범위]
+실제 코레일 열차 조회는 확인했습니다.
+자동 테스트 40개는 Linux 환경에서 통과했습니다.
+Windows 실기기 실행과 실제 카드 결제, 휴대폰 알림 수신은 별도 확인이 필요합니다.
+이번 파일을 묶는 과정에서는 실제 열차 조회나 예약·결제를 실행하지 않았습니다.
