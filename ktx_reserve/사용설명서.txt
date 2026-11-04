@@ -16,9 +16,12 @@
 winget install --id Python.Python.3.13 -e --source winget --accept-source-agreements --accept-package-agreements
 winget install --id Git.Git -e --source winget --accept-source-agreements --accept-package-agreements
 
-2. 설치 후 cmd를 닫고 다시 엽니다. 확인 명령:
+2. 설치 후 cmd를 완전히 닫고 새로 엽니다. 다음을 한 줄씩 실행해 확인합니다:
 py -3.13 --version
 git --version
+
+Python 3.13.x, git version ... 이 표시되면 설치된 것입니다.
+관리자 권한 허용이나 설치 동의 창이 나오면 내용을 확인하고 진행하세요.
 
 winget이 없으면 https://www.python.org/downloads/windows/ 에서 Python 3.13,
 https://git-scm.com/download/win 에서 Git을 설치합니다.
@@ -34,16 +37,45 @@ start_booking.bat
 
 start_booking.bat를 더블클릭해 실행해도 됩니다.
 
-[Mac 설치·실행]
-Python 3.11 이상(3.13 권장)과 Git이 필요합니다.
-https://www.python.org/downloads/macos/ 에서 Python을 설치할 수 있습니다.
-프로그램 폴더에서 터미널을 열고 다음을 순서대로 실행합니다.
+[Mac 처음 설치·실행]
+1. Python 설치 확인: 터미널에서 python3 --version 을 실행합니다.
+Python 3.11 이상이면 사용할 수 있습니다.
+command not found가 나오거나 3.10 이하라면 Python을 설치하세요.
+
+2. Python이 없다면 Safari/Chrome으로 아래 공식 페이지를 여세요.
+https://www.python.org/downloads/macos/
+Python 3.13 이상 버전의 macOS installer(.pkg)를 내려받습니다.
+.pkg 파일을 실행하고 안내에 따라 설치합니다. 터미널을 완전히 닫고 다시 엽니다.
+확인 명령: python3.13 --version
+
+Homebrew가 이미 있다면 아래 명령으로 설치해도 됩니다.
+brew install python@3.13
+Homebrew가 없으면 위 공식 .pkg 설치 방법을 쓰면 됩니다.
+
+3. Git 확인: 터미널에서 git --version 을 실행합니다.
+개발자 도구 설치 창이 나오면 설치하세요. 창이 안 나오고 Git이 없다면 다음을 실행합니다.
+xcode-select --install
+설치를 마친 뒤 터미널을 다시 열어 git --version 을 확인합니다.
+
+4. ZIP을 다운로드 폴더에서 압축 해제하세요.
+setup.sh와 start_booking.sh가 보이는 폴더에서 터미널을 엽니다.
+Downloads 바로 아래 ktx-reserve 폴더라면 아래 명령을 사용합니다.
+cd ~/Downloads/ktx-reserve
+압축을 풀면서 같은 이름의 폴더가 한 겹 더 생겼다면 실제 파일이 있는 안쪽 폴더로 이동하세요.
+Finder의 폴더를 터미널로 드래그하면 경로를 입력할 수 있습니다.
+
+5. 처음 한 번 설치합니다.
 bash setup.sh
+설치와 테스트가 오류 없이 끝나면 실행합니다.
 bash start_booking.sh
 
-설치 스크립트는 Homebrew 및 공식 설치 경로에서 Python을 찾습니다.
-기존 Python이 먼저 잡히면 다음처럼 가상환경을 직접 만든 뒤 설치하세요.
+기본 Python 버전 오류가 나오고 Homebrew Python 3.13을 설치했다면:
 /opt/homebrew/bin/python3.13 -m venv .venv
+source .venv/bin/activate
+bash setup.sh
+
+공식 .pkg로 Python 3.13을 설치했다면:
+/Library/Frameworks/Python.framework/Versions/3.13/bin/python3.13 -m venv .venv
 source .venv/bin/activate
 bash setup.sh
 
@@ -51,6 +83,7 @@ bash setup.sh
 실행하면 회원번호, 코레일 비밀번호, 개인카드 정보를 터미널에서 묻습니다.
 카드번호 / 유효기간 YYMM / 카드 비밀번호 앞 2자리 / 소유자 생년월일 YYMMDD를 입력하세요.
 예: 카드에 유효기간 12/28이 쓰여 있으면 2812를 입력합니다.
+각 입력을 마칠 때 Enter를 누르세요.
 비밀번호와 카드 정보는 입력해도 화면에 표시되지 않으며 파일에 저장하지 않습니다.
 카드 정보·웹훅 주소 등 비밀값은 채팅에 보내지 마세요.
 법인카드 전용 입력 기능은 지원하지 않습니다.
@@ -86,6 +119,23 @@ Mac:
 PC에서 Discord를 사용 중이면 모바일 푸시가 지연될 수 있습니다.
 설정하지 않으면 Discord 전송 없이 예약·결제를 실행합니다.
 성공 또는 결제 상태 확인 필요 등 최종 결과를 보내며 카드정보·예약번호는 보내지 않습니다.
+
+[자주 나는 오류]
+- winget: command not found / 인식할 수 없는 명령
+  Windows의 위 공식 Python/Git 웹사이트에서 직접 설치합니다.
+- Python 3.11 이상 필요 / AssertionError
+  최신 ZIP의 setup 파일을 사용하세요. 설치한 Python 3.13 경로를 직접 쓰는 Mac 명령은 위에 있습니다.
+- git이 없다는 안내
+  Windows는 Git 설치 후 cmd를 완전히 닫고 다시 여세요. Mac은 개발자 도구를 설치하세요.
+- setup.bat 또는 run.bat를 찾을 수 없음
+  압축을 먼저 풀고, 해당 파일이 보이는 실제 폴더에서 cmd를 열어야 합니다.
+- 기존 .venv가 오래된 Python이라는 안내
+  실행을 멈추고 .venv 폴더를 .venv-old 등 다른 이름으로 바꾼 뒤 setup을 다시 실행하세요.
+  이전 가상환경을 새 PC로 복사하지 말고 각 PC에서 setup을 실행하세요.
+- 날짜·시간이 지났다는 안내
+  시작 파일의 날짜와 출발 시간대를 미래의 원하는 날짜·시간으로 수정하세요.
+- 로그인 실패
+  반복 실행하기 전에 회원번호와 비밀번호를 확인하세요. 잘못된 비밀번호로 반복 로그인하지 마세요.
 
 [실행 중]
 PC와 터미널을 켜두고 절전 모드를 해제하세요. Mac은 덮개를 열어두세요.

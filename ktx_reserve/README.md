@@ -187,10 +187,8 @@ bash run.sh --demo --dep 서울 --arr 동대구 --date 2026-11-06 --from 13:00 -
 | `--date` | 출발일, 예: `2026-11-06` | 필수 |
 | `--from` / `--to` | 출발 시간 범위, 예: `13:00` / `15:00` | 필수 |
 | `--adult` / `--child` / `--senior` | 어른 / 어린이 / 경로 인원, 총 1~9명 | 1 / 0 / 0 |
-| `--train` | `ktx`, `all`, `saemaeul`, `mugunghwa`, `itx-cheongchun` | `ktx` |
 | `--seat` | `general-first`, `general-only`, `special-first`, `special-only` | `general-first` |
 | `--adjacent` | 2명 이상일 때 인원수만큼 붙은 좌석인지 검사 | 끔 |
-| `--trains` | 쉼표로 구분한 열차번호, 예: `105,107` | 전부 |
 | `--interval-min` / `--interval-max` | 조회 간격 범위(초), 최소 0.5초 | 1.0 / 2.0 |
 | `--check` | 로그인 없이 실제 역·열차 조회 1회 | 끔 |
 | `--state-dir` | 기기 정보 저장 폴더 | `~/.ktx_reserve` |
