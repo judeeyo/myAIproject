@@ -10,6 +10,10 @@ Python 3.11 이상에서 실행하는 터미널 프로그램입니다. 출발역
 bash setup.sh
 ```
 
+Python 버전 오류가 나면 https://www.python.org/downloads/macos/ 에서 Python 3.13 이상을
+설치하고 터미널을 다시 여세요. 설치 스크립트는 공식 설치본과 Apple Silicon·Intel Homebrew
+경로를 찾아 사용하므로 맥의 기본 Python을 바꿀 필요가 없습니다.
+
 삭제된 PyPI 배포 대신 공개 보존 포크의 커밋
 `030576a6b41d874f35ebdf6b2d68ed76e70a1af7`을 설치합니다. 의존성 설치와 자동 테스트까지 실행하며,
 시스템 Python을 변경하지 않습니다. 출처와 라이선스는 [THIRD_PARTY.md](THIRD_PARTY.md)를 참고하세요.
