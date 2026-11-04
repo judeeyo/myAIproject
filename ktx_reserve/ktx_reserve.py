@@ -366,6 +366,19 @@ class Bot:
         log(f"예약 성공! {label} {train.dep_name}→{train.arr_name} | 좌석 {seat_text} | "
             f"{rsv.price:,}원 | 예약번호 {rsv.pnr_no} | 결제기한 {limit}")
         notify("KTX 예약 성공", f"{label} {seat_text}. 결제기한 {limit}까지 결제하세요.")
+        # Notification failure must never restart the reservation loop.
+        try:
+            from discord_notify import send
+            delivered = send(
+                f"🚄 KTX 예약 성공! {c.date} {train.dep_name}→{train.arr_name}\n"
+                f"{label} · {self.total}명 · {seat_text}\n"
+                f"결제기한 {limit}. 코레일톡에서 예약 내역을 확인하고 결제하세요.", c.state_dir)
+            if delivered is True:
+                log("디스코드 예약 성공 알림 전송 완료")
+            elif delivered is False:
+                log("디스코드 알림 전송 실패. 예약은 다시 시도하지 않습니다. 앱에서 확인하세요.")
+        except Exception:
+            log("디스코드 알림 처리 실패. 앱에서 예약 내역을 확인하세요.")
 
         if self.card:
             try:

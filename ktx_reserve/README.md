@@ -52,7 +52,7 @@ bash run.sh --dep 서울 --arr 동대구 --date 2026-11-06 --from 13:00 --to 15:
 ## 검증 상태 (2026-11-04)
 
 - 고정 포크 설치, 실제 SDK 로딩, 의존성 검사 통과.
-- 29개 테스트 통과. 실제 SDK의 HTTP 전송 직전까지 호출하고 응답 해석을 검사하는 테스트를 포함합니다.
+- 37개 테스트 통과. 실제 SDK의 HTTP 전송 직전까지 호출하고 응답 해석을 검사하는 테스트를 포함합니다.
   테스트 HTTP 응답은 고정된 모의 데이터이며 실서버 결과가 아닙니다.
 - 2026-11-04 13:00 KST, 클라우드에서 실제 `--check` 실행 성공(종료 코드 0).
   역 정보 조회와 2026-11-06 서울→동대구 13시 이후 열차 10편 조회를 확인했습니다.
@@ -84,6 +84,63 @@ bash run.sh --check --state-dir /workspace/ktx-state --dep 서울 --arr 동대�
 `KTX_STATE_DIR`로도 같은 폴더를 지정할 수 있습니다. 비밀번호·카드 정보는 파일에 저장하지 않습니다.
 프록시 환경변수는 유지하며, `REQUESTS_CA_BUNDLE`, `CURL_CA_BUNDLE`, `SSL_CERT_FILE` 순서로 설정된
 인증서 번들을 사용합니다. TLS 검증을 끄지 않으며 각 요청의 제한시간은 30초입니다.
+
+## Windows에서 실행
+
+Windows용 Python 3.11 이상(3.13 권장)과 Git for Windows를 설치하세요.
+Python 설치 화면에서 `Add python.exe to PATH`를 선택하고 터미널을 다시 여세요.
+ZIP을 압축 해제한 폴더에서 PowerShell을 열고 다음을 실행합니다.
+
+```powershell
+.\setup.bat
+.\run.bat --check --dep 서울 --arr 동대구 --date 2026-11-06 --from 13:49 --to 13:58 --adult 2
+```
+
+명령 프롬프트(cmd)에서는 앞의 `.\` 없이 `setup.bat`, `run.bat`으로 실행해도 됩니다.
+설치 후 실제 예약 명령 예시:
+
+```powershell
+.\run.bat --dep 서울 --arr 동대구 --date 2026-11-06 --from 13:49 --to 13:58 --trains 39,41 --adult 2 --seat general-only --interval-min 1 --interval-max 2
+```
+
+회원번호와 비밀번호는 터미널에서 입력합니다. 자동 결제는 하지 않습니다.
+실행 중에는 PC와 터미널을 켜두고 Windows 전원 설정의 절전 시간을 조절하세요.
+`caffeinate`는 맥 전용이므로 윈도우 명령에는 넣지 않습니다. 중단은 Ctrl+C입니다.
+기본 저장 폴더는 사용자 홈의 `.ktx_reserve`이며, Windows의 실제 접근 권한은 계정·폴더 ACL을 따릅니다.
+Python 연동 테스트는 Linux에서 통과했습니다. Windows 런타임 및 휴대폰 알림은 사용자 PC에서 추가 확인이 필요합니다.
+
+## 디스코드 휴대폰 알림
+
+본인 Discord 서버의 텍스트 채널에서 채널 편집(톱니바퀴) → 연동(Integrations) →
+웹훅(Webhooks) → 새 웹훅을 만들어 URL을 복사하세요. 서버·채널 관리 권한이 필요합니다.
+권한이 없다면 본인 전용 서버와 채널을 만들면 됩니다. URL은 해당 채널에 메시지를 보낼 수 있는 비밀값입니다.
+채팅·저장소에 올리지 말고 아래 설정 명령의 터미널 입력란에만 붙여넣으세요.
+
+Windows PowerShell:
+
+```powershell
+.\discord.bat --setup
+.\discord.bat --test
+```
+
+맥·Linux:
+
+```bash
+.venv/bin/python discord_notify.py --setup
+.venv/bin/python discord_notify.py --test
+```
+
+`--setup` 입력은 화면에 표시되지 않습니다. 기본 `~/.ktx_reserve/discord.json`에 저장합니다.
+예약 명령에 `--state-dir`을 사용했다면 설정·시험 명령에도 같은 폴더를 지정하세요.
+프로세스에 직접 주입한 `DISCORD_WEBHOOK_URL`이 있으면 파일보다 우선합니다.
+`--test`는 실제 채널에 시험 메시지를 보냅니다. 성공 여부뿐 아니라 휴대폰 수신까지 확인한 뒤 예약을 실행하세요.
+
+휴대폰의 Discord 알림 권한과 해당 채널의 '모든 메시지' 알림을 켜세요.
+PC에서 Discord를 사용 중이면 모바일 푸시가 지연될 수 있습니다. Discord의 모바일 푸시 비활성 시간 설정도 확인하세요.
+프로그램은 예약 성공 시 날짜·구간·열차·인원·좌석·결제기한을 전송하며, 회원번호·예약번호·비밀번호·카드정보는 보내지 않습니다.
+공유 채널 대신 본인 전용 채널을 권장합니다. 멘션은 자동으로 발생시키지 않습니다.
+`--demo`와 `--dry-run`에서는 Discord 알림을 보내지 않습니다. 전송 실패해도 예약을 다시 시도하지 않습니다.
+설정을 지우려면 예약 프로그램을 멈춘 뒤 `discord.json`을 삭제하고 환경변수를 사용했다면 함께 해제하세요.
 
 ## 개발용 데모
 

@@ -21,6 +21,9 @@ class ReservationTests(unittest.TestCase):
         notify = patch.object(app, "notify")
         notify.start()
         self.addCleanup(notify.stop)
+        discord = patch("discord_notify.send", return_value=None)
+        self.discord_send = discord.start()
+        self.addCleanup(discord.stop)
         self.date = (datetime.now(app.KST) + timedelta(days=1)).date().isoformat()
         self.argv = ["--dep", "서울", "--arr", "동대구", "--date", self.date,
                      "--from", "13:00", "--to", "15:00", "--adult", "2", "--demo"]
@@ -44,6 +47,23 @@ class ReservationTests(unittest.TestCase):
         self.client.reservations.create = Mock(side_effect=AssertionError("must not reserve"))
         self.assertTrue(self.bot.poll_once())
         self.client.reservations.create.assert_not_called()
+        self.discord_send.assert_not_called()
+
+    def test_discord_success_notification(self):
+        self.cfg.demo = False
+        self.discord_send.return_value = True
+        self.assertTrue(self.bot.try_reserve(self.train))
+        self.discord_send.assert_called_once()
+        message = self.discord_send.call_args.args[0]
+        self.assertIn("예약 성공", message)
+        self.assertNotIn("DEMO-NOT-A-TICKET", message)
+
+    def test_discord_failure_does_not_restart_reservations(self):
+        self.cfg.demo = False
+        self.discord_send.return_value = False
+        self.client.reservations.create = Mock(wraps=self.client.create)
+        self.assertTrue(self.bot.try_reserve(self.train))
+        self.client.reservations.create.assert_called_once()
 
     def test_adjacent_rules(self):
         for seats, expected in [([("1", "15A"), ("1", "15B")], True),

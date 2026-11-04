@@ -36,7 +36,8 @@ class LiveBackendTests(unittest.TestCase):
             identity = first.android_id
         with create_client(self.directory) as second:
             self.assertEqual(second.android_id, identity)
-        self.assertEqual(stat.S_IMODE((self.directory / "device.json").stat().st_mode), 0o600)
+        if os.name == "posix":
+            self.assertEqual(stat.S_IMODE((self.directory / "device.json").stat().st_mode), 0o600)
 
     def test_old_profile_migrates_without_changing_device(self):
         profile = random_profile()
