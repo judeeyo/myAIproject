@@ -237,6 +237,8 @@ class Bot:
             f"{', 붙은 자리만' if c.adjacent and self.total > 1 else ''}, "
             f"{'결제까지' if self.card else '예약까지만'}{' · 테스트 모드' if c.dry_run else ''}"
         )
+        if c.trains:
+            log(f"열차번호 제한: {', '.join(sorted(c.trains))}번만 조회 결과에서 선택합니다")
         self.login_with_retry()
 
         while True:
@@ -303,7 +305,13 @@ class Bot:
             and self.skip_until.get(t.train_no, 0) <= mono
         ]
         if not candidates:
-            self.idle_log(f"빈자리 없음 ({len(trains)}편 확인), 계속 조회 중 · {self.attempts}회차")
+            in_window = [t for t in trains if t.departure is not None
+                         and self.window_start <= t.departure <= self.window_end]
+            if c.trains and in_window and not any(t.train_no.lstrip("0") in c.trains for t in in_window):
+                self.idle_log(f"조회한 시간대에 지정 열차번호({', '.join(sorted(c.trains))})가 없습니다. "
+                              "전체 열차를 보려면 --trains 제한을 제거하세요")
+            else:
+                self.idle_log(f"현재 예약 조건에 맞는 좌석 없음 ({len(trains)}편 확인), 계속 조회 중 · {self.attempts}회차")
             return False
 
         for train in candidates:

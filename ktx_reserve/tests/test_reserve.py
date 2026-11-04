@@ -134,7 +134,10 @@ class ReservationTests(unittest.TestCase):
     def test_train_filter(self):
         self.cfg.trains = {"999"}
         self.client.trains.search = Mock(return_value=[self.train])
-        self.assertFalse(self.bot.poll_once())
+        with patch.object(self.bot, "idle_log") as idle:
+            self.assertFalse(self.bot.poll_once())
+        self.assertIn("지정 열차번호(999)가 없습니다", idle.call_args.args[0])
+        self.assertIn("--trains", idle.call_args.args[0])
 
     def test_elapsed_window_stops(self):
         self.bot.window_end = datetime.now(app.KST) - timedelta(seconds=1)
