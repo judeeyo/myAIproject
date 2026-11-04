@@ -1,1 +1,7 @@
-pykorail>=0.6.1
+# Public preservation fork; pin the audited source, not a moving branch or deleted PyPI release.
+pykorail @ git+https://github.com/ArchsouL/pykorail.git@030576a6b41d874f35ebdf6b2d68ed76e70a1af7
+certifi==2026.10.23
+curl-cffi==0.17.0
+pycryptodome==4.3.0
+cffi==2.1.1
+pycparser==3.12

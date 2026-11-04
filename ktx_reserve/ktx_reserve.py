@@ -29,13 +29,14 @@ from __future__ import annotations
 import argparse
 import getpass
 import json
+import importlib
+import math
 import os
 import random
 import re
 import subprocess
 import sys
 import time
-from dataclasses import asdict
 from datetime import date as Date
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -46,29 +47,22 @@ if sys.version_info < (3, 11):
         "맥이라면: brew install python  후  python3 --version 으로 확인하세요."
     )
 
-try:
-    from pykorail import (
-        AccessRestrictedError,
-        AdultPassenger,
-        Card,
-        ChildPassenger,
-        DeviceProfile,
-        Korail,
-        KorailError,
-        LoginFailedError,
-        NeedToLoginError,
-        NoResultsError,
-        PastDepartureError,
-        PykorailError,
-        ReserveOption,
-        SeniorPassenger,
-        SoldOutError,
-        StationNotFoundError,
-        TrainType,
-    )
-    from pykorail.device import random_profile
-except ImportError:  # pragma: no cover - 설치 안내
-    sys.exit("pykorail 이 설치되어 있지 않습니다.\n  python3 -m pip install -U pykorail")
+def load_backend(demo: bool = False) -> None:
+    """실제 라이브러리는 실행 시에만 불러온다. 데모는 네트워크를 사용하지 않는다."""
+    module = importlib.import_module("demo_backend" if demo else "pykorail")
+    names = (
+        "AccessRestrictedError AdultPassenger Card ChildPassenger DeviceProfile Korail "
+        "KorailError LoginFailedError NeedToLoginError NoResultsError PastDepartureError "
+        "PykorailError ReserveOption SeniorPassenger SoldOutError StationNotFoundError TrainType"
+    ).split()
+    bindings = {name: getattr(module, name) for name in names}
+    bindings["random_profile"] = (module.random_profile if demo else
+                                  importlib.import_module("pykorail.device").random_profile)
+    globals().update(bindings)
+    for key, name in TRAIN_TYPE_NAMES.items():
+        TRAIN_TYPES[key] = getattr(module.TrainType, name)
+    for key, (name, label) in SEAT_PREF_NAMES.items():
+        SEAT_PREFS[key] = (getattr(module.ReserveOption, name), label)
 
 
 KST = timezone(timedelta(hours=9))
@@ -84,22 +78,21 @@ IDLE_LOG_EVERY_SEC = 10
 # 붙은 자리가 아니라 취소한 열차는 잠시 건너뛴다 (예약→취소 반복 방지)
 NOT_ADJACENT_SKIP_SEC = 60
 
-TRAIN_TYPES = {
-    "ktx": TrainType.KTX,
-    "all": TrainType.ALL,
-    "saemaeul": TrainType.SAEMAEUL,
-    "mugunghwa": TrainType.MUGUNGHWA,
-    "itx-cheongchun": TrainType.ITX_CHEONGCHUN,
+TRAIN_TYPE_NAMES = {
+    "ktx": "KTX", "all": "ALL", "saemaeul": "SAEMAEUL",
+    "mugunghwa": "MUGUNGHWA", "itx-cheongchun": "ITX_CHEONGCHUN",
 }
-
-SEAT_PREFS = {
-    "general-only": (ReserveOption.GENERAL_ONLY, "일반실만"),
-    "general-first": (ReserveOption.GENERAL_FIRST, "일반실 우선"),
-    "special-only": (ReserveOption.SPECIAL_ONLY, "특실만"),
-    "special-first": (ReserveOption.SPECIAL_FIRST, "특실 우선"),
+SEAT_PREF_NAMES = {
+    "general-only": ("GENERAL_ONLY", "일반실만"),
+    "general-first": ("GENERAL_FIRST", "일반실 우선"),
+    "special-only": ("SPECIAL_ONLY", "특실만"),
+    "special-first": ("SPECIAL_FIRST", "특실 우선"),
 }
+TRAIN_TYPES = dict(TRAIN_TYPE_NAMES)
+SEAT_PREFS = dict(SEAT_PREF_NAMES)
+VERSION_ERROR_MESSAGE = "코레일 앱 버전 거절(-8204). 중단합니다. 호환되는 라이브러리가 필요합니다."
 
-DEVICE_FILE = Path.home() / ".ktx_reserve" / "device.json"
+
 
 
 class Stop(Exception):
@@ -171,25 +164,6 @@ def train_label(train) -> str:
     return f"{train.train_type_name} {train.train_no.lstrip('0') or '0'}번 {t[:2]}:{t[2:4]}"
 
 
-# --------------------------------------------------------------------------- 기기 프로파일
-
-
-def load_device_profile() -> DeviceProfile:
-    """실행할 때마다 다른 폰인 척하지 않도록 같은 가상 기기를 저장해 재사용한다."""
-    try:
-        return DeviceProfile(**json.loads(DEVICE_FILE.read_text()))
-    except Exception:
-        pass
-    profile = random_profile()
-    try:
-        DEVICE_FILE.parent.mkdir(parents=True, exist_ok=True)
-        DEVICE_FILE.write_text(json.dumps(asdict(profile)))
-        DEVICE_FILE.chmod(0o600)
-    except OSError as exc:
-        log(f"기기 정보 저장 실패(계속 진행): {exc}")
-    return profile
-
-
 # --------------------------------------------------------------------------- 봇
 
 
@@ -228,6 +202,8 @@ class Bot:
     def login_with_retry(self) -> None:
         transient = 0
         while True:
+            if datetime.now(KST) >= self.window_end:
+                raise Stop("원하는 시간대가 지나 로그인 재시도를 종료합니다.")
             try:
                 self.korail.login(self.cfg.korail_id, self.cfg.korail_pw)
                 log(f"로그인 완료 ({self.korail.name or self.korail.membership_number})")
@@ -238,6 +214,8 @@ class Bot:
             except AccessRestrictedError as exc:
                 raise Stop(f"코레일이 이용을 제한했습니다: {exc}") from exc
             except Exception as exc:  # 통신·일시 오류 → 백오프 재시도
+                if isinstance(exc, KorailError) and str(exc.code) in {"-8204", "-2000"}:
+                    raise Stop(VERSION_ERROR_MESSAGE if str(exc.code) == "-8204" else "코레일 이용제한으로 종료합니다.") from exc
                 transient += 1
                 if transient == LOGIN_RETRY_ALERT_AFTER:
                     notify("KTX 예매: 로그인이 계속 실패", f"{transient}회 연속 로그인 오류입니다.")
@@ -280,11 +258,10 @@ class Bot:
                     log(f"안티매크로 감지. {MACRO_COOLDOWN_SEC}초 쉬었다가 계속합니다")
                     self.sleep(MACRO_COOLDOWN_SEC)
                     continue
-                if exc.code == "-8204":
-                    raise Stop(
-                        "코레일이 앱 버전이 낮다고 거절했습니다. "
-                        "python3 -m pip install -U pykorail 로 업데이트하세요."
-                    ) from exc
+                if str(exc.code) == "-8204":
+                    raise Stop(VERSION_ERROR_MESSAGE) from exc
+                if str(exc.code) == "-2000":
+                    raise Stop("코레일 이용제한으로 종료합니다.") from exc
                 log(f"오류: {first_line(exc)}. 잠시 뒤 계속합니다")
                 self.sleep(TRANSIENT_ERROR_SEC)
             except Exception as exc:  # 통신 오류 등
@@ -350,6 +327,10 @@ class Bot:
         except SoldOutError:
             log(f"{label}: 그새 자리가 나갔습니다. 계속 시도합니다")
             return False
+        except (NeedToLoginError, AccessRestrictedError):
+            raise
+        except Exception as exc:
+            raise Stop("예약 요청 결과를 확인할 수 없습니다. 중복 예약 방지를 위해 종료합니다. 코레일톡에서 예약 내역을 확인하세요.") from exc
 
         if rsv.is_waiting:  # 좌석이 아니라 예약대기가 걸렸으면 원치 않는 결과
             log(f"{label}: 예약대기로 잡혀 취소하고 계속합니다")
@@ -359,13 +340,15 @@ class Bot:
         seats = [(s.car_no, s.seat_no) for s in rsv.seats]
         seat_text = ", ".join(f"{car}호차 {no}" for car, no in seats) or "좌석 정보 없음"
         if c.adjacent and self.total > 1:
-            if not seats:
-                log(f"{label}: 좌석 정보를 읽지 못해 붙은 자리 확인을 건너뜁니다. 앱에서 확인하세요")
-            elif not seats_are_adjacent(seats):
+            if len(seats) != self.total or not seats_are_adjacent(seats):
                 log(f"{label}: 붙은 자리가 아님({seat_text}). 취소하고 계속 시도합니다")
                 self.safe_cancel(rsv)
                 self.skip_until[train.train_no] = time.monotonic() + NOT_ADJACENT_SKIP_SEC
                 return False
+
+        if c.demo:
+            log(f"[데모] 모의 예약 완료 | {label} | 좌석 {seat_text} | 실제 승차권 없음")
+            return True
 
         limit = rsv.buy_limit.strftime("%H:%M") if rsv.buy_limit else "확인 필요"
         log(f"예약 성공! {label} {train.dep_name}→{train.arr_name} | 좌석 {seat_text} | "
@@ -377,9 +360,9 @@ class Bot:
                 self.korail.reservations.pay(rsv, self.card)
                 log("결제 완료! 코레일톡 앱의 승차권 확인에서 표를 확인하세요.")
                 notify("KTX 결제 완료", f"{label} 발권되었습니다.")
-            except PykorailError as exc:
-                log(f"자동 결제 실패: {first_line(exc)} — 예약은 유지됩니다. {limit}까지 앱에서 직접 결제하세요")
-                notify("KTX 결제 실패", f"예약은 유지됩니다. {limit}까지 앱에서 결제하세요.")
+            except Exception:
+                log(f"결제 완료 여부를 확인하지 못했습니다. 예약을 다시 시도하지 않습니다. 앱에서 결제·예약 상태를 확인하세요 (기한 {limit}).")
+                notify("KTX 결제 확인 필요", "앱에서 결제·예약 상태를 확인하세요.")
         else:
             log(f"{limit}까지 코레일톡 앱에서 결제하지 않으면 자동 취소됩니다.")
         return True
@@ -388,7 +371,7 @@ class Bot:
         try:
             self.korail.reservations.cancel(rsv)
         except Exception as exc:
-            log(f"취소 실패: {first_line(exc)} — 앱에서 예약번호 {rsv.pnr_no} 를 직접 취소하세요")
+            raise Stop(f"취소 실패 — 중복 예약을 막기 위해 종료합니다. 앱에서 예약번호 {rsv.pnr_no}를 확인하세요.") from exc
 
 
 def first_line(exc: BaseException) -> str:
@@ -433,6 +416,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--interval-min", type=float, default=1.0, help="조회 간격 최소(초)")
     p.add_argument("--interval-max", type=float, default=2.0, help="조회 간격 최대(초)")
     p.add_argument("--pay", action="store_true", help="예약 후 카드 결제까지 자동 진행")
+    p.add_argument("--check", action="store_true", help="로그인·예약 없이 실제 역 정보와 열차 조회를 한 번 검사")
+    p.add_argument("--state-dir", type=Path, default=Path(os.environ.get("KTX_STATE_DIR", str(Path.home() / ".ktx_reserve"))), help="기기 ID 보관 폴더")
+    p.add_argument("--demo", action="store_true", help="외부 연결 없이 모의 조회·예약으로 실행 (실제 승차권 없음)")
     p.add_argument("--dry-run", action="store_true", help="테스트: 빈자리를 찾으면 예약하지 않고 멈춤")
     return p
 
@@ -445,9 +431,19 @@ def validate(args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
         parser.error("총 인원은 1~9명이어야 합니다")
     if args.time_from > args.time_to:
         parser.error("--from 이 --to 보다 늦습니다")
-    if args.interval_min < 0.5 or args.interval_max < args.interval_min:
+    if (not math.isfinite(args.interval_min) or not math.isfinite(args.interval_max)
+            or args.interval_min < 0.5 or args.interval_max < args.interval_min):
         parser.error("조회 간격은 0.5초 이상, --interval-min ≤ --interval-max 여야 합니다")
-    args.trains = {t.strip().lstrip("0") for t in args.trains.split(",") if t.strip()}
+    if args.check and (args.demo or args.pay):
+        parser.error("--check는 --demo 또는 --pay와 함께 사용할 수 없습니다")
+    if args.demo and args.pay:
+        parser.error("--demo에서는 --pay를 사용할 수 없습니다")
+    if args.dep == args.arr:
+        parser.error("출발역과 도착역이 같습니다")
+    train_numbers = [t.strip() for t in args.trains.split(",") if t.strip()]
+    if any(not t.isascii() or not t.isdigit() or int(t) == 0 for t in train_numbers):
+        parser.error("--trains에는 양의 열차번호를 쉼표로 구분해 입력하세요")
+    args.trains = {t.lstrip("0") for t in train_numbers}
 
 
 def ask_card() -> Card:
@@ -464,12 +460,45 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     validate(args, parser)
 
-    args.korail_id = os.environ.get("KORAIL_ID") or input("코레일 아이디 (회원번호·이메일·010-0000-0000): ").strip()
-    args.korail_pw = os.environ.get("KORAIL_PASSWORD") or getpass.getpass("코레일 비밀번호: ")
-    card = ask_card() if args.pay and not args.dry_run else None
+    try:
+        load_backend(args.demo)
+    except (ImportError, AttributeError):
+        print("실제 실행에 필요한 호환 pykorail을 불러올 수 없습니다. "
+              "가상환경에서 python -m pip install -r requirements.txt 로 고정 배포본을 설치하세요.", file=sys.stderr)
+        return 2
 
     try:
-        with Korail(device_profile=load_device_profile()) as korail:
+        if args.demo:
+            log("[데모] 모의 데이터로 실행합니다. 서버 접속·실제 예약·결제는 없습니다.")
+            args.korail_id, args.korail_pw = "demo", "demo"
+            card = None
+            client = Korail(config=args)
+        else:
+            from live_backend import create_client
+            if args.check:
+                with create_client(args.state_dir) as korail:
+                    korail.stations.ensure_exist(args.dep, args.arr)
+                    log("실제 서버 역 정보 조회 성공")
+                    start = datetime.combine(args.date, datetime.min.time(), tzinfo=KST).replace(
+                        hour=args.time_from[0], minute=args.time_from[1])
+                    try:
+                        trains = korail.trains.search(args.dep, args.arr, depart_after=start,
+                                                     train_type=TRAIN_TYPES[args.train],
+                                                     passengers=([AdultPassenger(args.adult)] if args.adult else [])
+                                                     + ([ChildPassenger(args.child)] if args.child else [])
+                                                     + ([SeniorPassenger(args.senior)] if args.senior else []),
+                                                     include_no_seats=True, max_pages=1)
+                    except NoResultsError:
+                        trains = []
+                    log(f"실제 서버 열차 조회 성공: {len(trains)}편 (첫 페이지, 예약·결제 없음)")
+                    for train in trains:
+                        log(f"{train_label(train)} {train.dep_name}→{train.arr_name}")
+                return 0
+            args.korail_id = os.environ.get("KORAIL_ID") or input("코레일 아이디 (회원번호·이메일·010-0000-0000): ").strip()
+            args.korail_pw = os.environ.get("KORAIL_PASSWORD") or getpass.getpass("코레일 비밀번호: ")
+            card = ask_card() if args.pay and not args.dry_run else None
+            client = create_client(args.state_dir)
+        with client as korail:
             korail.stations.ensure_exist(args.dep, args.arr)
             Bot(args, korail, card).run()
         return 0
@@ -477,6 +506,15 @@ def main(argv: list[str] | None = None) -> int:
         log(f"역 이름 오류: {exc}")
     except Stop as exc:
         log(str(exc))
+    except KorailError as exc:
+        log(f"코레일 요청 거절 (코드 {exc.code}). 서버 연결·호환성 또는 계정 상태를 확인하세요.")
+    except Exception as exc:
+        # Transport errors may contain proxy URLs or request details; do not dump them.
+        if isinstance(exc, EOFError):
+            log("입력을 읽을 수 없습니다. 대화형 터미널 또는 환경변수로 인증 정보를 제공하세요.")
+        else:
+            log(f"실행 실패 ({type(exc).__name__}). 네트워크 허용 도메인, CA 설정, 기기 파일을 확인하세요.")
+        return 1
     except KeyboardInterrupt:
         log("사용자 요청으로 중지했습니다")
         return 130
