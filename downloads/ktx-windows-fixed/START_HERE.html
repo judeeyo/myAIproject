@@ -1,0 +1,152 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>KTX 설치 및 실행 설명서</title><style>body{font:16px/1.7 "Malgun Gothic",sans-serif;max-width:960px;margin:32px auto;padding:0 20px}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}a{color:#125ac8}</style></head><body><h1>KTX 설치 및 실행 설명서</h1><p><a href="KTX_MANUAL.pdf">PDF 설명서 열기</a> · <a href="KTX_MANUAL_ANSI.txt">Windows 메모장용 설명서</a></p><pre>KTX 자동 예약·결제 실행 설명서
+
+[이번 ZIP의 기본 설정]
+- 서울 → 동대구 / 2026년 11월 6일
+- 출발 시간: 13:49 ~ 13:58
+- 성인 2명 / 일반실만
+- 열차번호 제한 없음: 해당 날짜·시간대에 맞는 KTX를 대상으로 합니다.
+- 조회 간격 1~2초(서버 응답 시간 별도)
+- 한 편에 2석 예약되면 개인카드 결제를 한 번 시도하고 종료합니다.
+- 붙은 자리 제한은 없습니다. 떨어진 2석도 예약합니다.
+- 실제 카드 결제는 미검증입니다. 완료 후 코레일톡 승차권을 확인하세요.
+
+[Windows 처음 설치]
+1. 시작 메뉴에서 cmd를 열어 아래 명령을 각각 실행합니다.
+
+winget install --id Python.Python.3.13 -e --source winget --accept-source-agreements --accept-package-agreements
+winget install --id Git.Git -e --source winget --accept-source-agreements --accept-package-agreements
+
+2. 설치 후 cmd를 완전히 닫고 새로 엽니다. 다음을 한 줄씩 실행해 확인합니다:
+py -3.13 --version
+git --version
+
+Python 3.13.x, git version ... 이 표시되면 설치된 것입니다.
+관리자 권한 허용이나 설치 동의 창이 나오면 내용을 확인하고 진행하세요.
+
+winget이 없으면 https://www.python.org/downloads/windows/ 에서 Python 3.13,
+https://git-scm.com/download/win 에서 Git을 설치합니다.
+Python 설치 때 Add python.exe to PATH를 체크합니다.
+
+3. 이 ZIP을 먼저 압축 해제합니다. ZIP 안에서 실행하지 마세요.
+setup.bat, run.bat가 보이는 폴더에 들어가 탐색기 주소창에 cmd를 입력합니다.
+열린 cmd에서 실행:
+setup.bat
+
+4. 설치와 자동 테스트가 오류 없이 끝나면 실행:
+start_booking.bat
+
+start_booking.bat를 더블클릭해 실행해도 됩니다.
+
+[Mac 처음 설치·실행]
+1. Python 설치 확인: 터미널에서 python3 --version 을 실행합니다.
+Python 3.11 이상이면 사용할 수 있습니다.
+command not found가 나오거나 3.10 이하라면 Python을 설치하세요.
+
+2. Python이 없다면 Safari/Chrome으로 아래 공식 페이지를 여세요.
+https://www.python.org/downloads/macos/
+Python 3.13 이상 버전의 macOS installer(.pkg)를 내려받습니다.
+.pkg 파일을 실행하고 안내에 따라 설치합니다. 터미널을 완전히 닫고 다시 엽니다.
+확인 명령: python3.13 --version
+
+Homebrew가 이미 있다면 아래 명령으로 설치해도 됩니다.
+brew install python@3.13
+Homebrew가 없으면 위 공식 .pkg 설치 방법을 쓰면 됩니다.
+
+3. Git 확인: 터미널에서 git --version 을 실행합니다.
+개발자 도구 설치 창이 나오면 설치하세요. 창이 안 나오고 Git이 없다면 다음을 실행합니다.
+xcode-select --install
+설치를 마친 뒤 터미널을 다시 열어 git --version 을 확인합니다.
+
+4. ZIP을 다운로드 폴더에서 압축 해제하세요.
+setup.sh와 start_booking.sh가 보이는 폴더에서 터미널을 엽니다.
+Downloads 바로 아래 ktx-reserve 폴더라면 아래 명령을 사용합니다.
+cd ~/Downloads/KTX_WINDOWS
+압축을 풀면서 같은 이름의 폴더가 한 겹 더 생겼다면 실제 파일이 있는 안쪽 폴더로 이동하세요.
+Finder의 폴더를 터미널로 드래그하면 경로를 입력할 수 있습니다.
+
+5. 처음 한 번 설치합니다.
+bash setup.sh
+설치와 테스트가 오류 없이 끝나면 실행합니다.
+bash start_booking.sh
+
+기본 Python 버전 오류가 나오고 Homebrew Python 3.13을 설치했다면:
+/opt/homebrew/bin/python3.13 -m venv .venv
+source .venv/bin/activate
+bash setup.sh
+
+공식 .pkg로 Python 3.13을 설치했다면:
+/Library/Frameworks/Python.framework/Versions/3.13/bin/python3.13 -m venv .venv
+source .venv/bin/activate
+bash setup.sh
+
+[로그인·개인카드 입력]
+실행하면 회원번호, 코레일 비밀번호, 개인카드 정보를 터미널에서 묻습니다.
+카드번호 / 유효기간 YYMM / 카드 비밀번호 앞 2자리 / 소유자 생년월일 YYMMDD를 입력하세요.
+예: 카드에 유효기간 12/28이 쓰여 있으면 2812를 입력합니다.
+각 입력을 마칠 때 Enter를 누르세요.
+비밀번호와 카드 정보는 입력해도 화면에 표시되지 않으며 파일에 저장하지 않습니다.
+카드 정보·웹훅 주소 등 비밀값은 채팅에 보내지 마세요.
+법인카드 전용 입력 기능은 지원하지 않습니다.
+
+[날짜·시간·인원 변경]
+Windows는 start_booking.bat를 우클릭해 편집/메모장으로 엽니다.
+Mac은 start_booking.sh를 텍스트 편집기로 엽니다.
+다음 값을 바꿔 저장하면 됩니다.
+--date 2026-11-06 : 출발 날짜
+--from 13:49 --to 13:58 : 출발 시간 범위
+--adult 2 : 성인 인원
+--seat general-only : 일반실만
+--pay : 예약 후 자동 결제. 예약만 하려면 이 옵션을 지우세요.
+--adjacent : 붙은 자리만 원할 때 추가합니다.
+기본 실행 파일에는 특정 열차번호를 지정하는 옵션을 넣지 않았습니다.
+
+[직접 명령 입력: Windows]
+run.bat --dep 서울 --arr 동대구 --date 2026-11-06 --from 13:49 --to 13:58 --adult 2 --seat general-only --interval-min 1 --interval-max 2 --pay
+PowerShell에서는 명령 앞에 .\를 붙여 .\run.bat ... 으로 실행합니다.
+
+[선택: Discord 휴대폰 알림]
+Discord 본인 서버의 텍스트 채널: 채널 편집 → 연동 → 웹훅 → 새 웹훅 → URL 복사.
+Windows cmd:
+discord.bat --setup
+discord.bat --test
+Mac:
+.venv/bin/python discord_notify.py --setup
+.venv/bin/python discord_notify.py --test
+
+설정 명령에서 복사한 URL을 입력합니다. 화면에는 표시되지 않습니다.
+--test는 실제 Discord 채널에 시험 메시지를 보냅니다. 휴대폰 수신까지 확인하세요.
+휴대폰 Discord 알림 권한과 해당 채널의 &#x27;모든 메시지&#x27; 알림을 켜세요.
+PC에서 Discord를 사용 중이면 모바일 푸시가 지연될 수 있습니다.
+설정하지 않으면 Discord 전송 없이 예약·결제를 실행합니다.
+성공 또는 결제 상태 확인 필요 등 최종 결과를 보내며 카드정보·예약번호는 보내지 않습니다.
+
+[자주 나는 오류]
+- winget: command not found / 인식할 수 없는 명령
+  Windows의 위 공식 Python/Git 웹사이트에서 직접 설치합니다.
+- Python 3.11 이상 필요 / AssertionError
+  최신 ZIP의 setup 파일을 사용하세요. 설치한 Python 3.13 경로를 직접 쓰는 Mac 명령은 위에 있습니다.
+- git이 없다는 안내
+  Windows는 Git 설치 후 cmd를 완전히 닫고 다시 여세요. Mac은 개발자 도구를 설치하세요.
+- setup.bat 또는 run.bat를 찾을 수 없음
+  압축을 먼저 풀고, 해당 파일이 보이는 실제 폴더에서 cmd를 열어야 합니다.
+- 기존 .venv가 오래된 Python이라는 안내
+  실행을 멈추고 .venv 폴더를 .venv-old 등 다른 이름으로 바꾼 뒤 setup을 다시 실행하세요.
+  이전 가상환경을 새 PC로 복사하지 말고 각 PC에서 setup을 실행하세요.
+- 날짜·시간이 지났다는 안내
+  시작 파일의 날짜와 출발 시간대를 미래의 원하는 날짜·시간으로 수정하세요.
+- 로그인 실패
+  반복 실행하기 전에 회원번호와 비밀번호를 확인하세요. 잘못된 비밀번호로 반복 로그인하지 마세요.
+
+[실행 중]
+PC와 터미널을 켜두고 절전 모드를 해제하세요. Mac은 덮개를 열어두세요.
+중단하려면 Ctrl+C를 누릅니다.
+예약·결제 요청 결과가 불명확하면 자동 재시도하지 않고 종료합니다.
+오류 뒤 재실행하기 전에 코레일톡에서 승차권·예약·결제 상태부터 확인하세요.
+알림 실패만으로 예약 실패를 뜻하지 않습니다.
+
+[확인된 범위]
+실제 코레일 열차 조회는 확인했습니다.
+자동 테스트 40개는 Linux 환경에서 통과했습니다.
+Windows 실기기 실행과 실제 카드 결제, 휴대폰 알림 수신은 별도 확인이 필요합니다.
+이번 파일을 묶는 과정에서는 실제 열차 조회나 예약·결제를 실행하지 않았습니다.
+</pre></body></html>
