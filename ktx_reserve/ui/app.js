@@ -193,8 +193,6 @@ async function start(mode) {
   if (mode === "pay" && !confirm("좌석을 잡으면 카드 결제까지 자동으로 진행합니다. 시작할까요?")) return;
   try {
     await api("/api/start", payload(mode));
-    $("loginPassword").value = "";
-    ["cardNumber", "cardPassword", "cardExpire", "cardBirth"].forEach((k) => { $(k).value = ""; });
     setLocked(true);
     poll();
   } catch (err) {

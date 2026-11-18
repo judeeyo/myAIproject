@@ -6,18 +6,18 @@
 
 | 받을 파일 | 내용 |
 |---|---|
-| [`downloads/ktx-reserve-final.zip`](downloads/ktx-reserve-final.zip) | 맥·윈도우 겸용 프로그램 + `사용설명서.txt` (**맥은 이것**) |
-| [`downloads/KTX_WINDOWS_FIXED.zip`](downloads/KTX_WINDOWS_FIXED.zip) | 윈도우용 (영문 파일명, 설명서 PDF·HTML·txt 포함) |
-| [`ktx_reserve/사용설명서.txt`](ktx_reserve/사용설명서.txt) | 설치·실행 설명서 |
-| [`downloads/ktx-windows-fixed/KTX_MANUAL.pdf`](downloads/ktx-windows-fixed/KTX_MANUAL.pdf) | 설명서 PDF |
+| [`downloads/ktx-reserve-final.zip`](downloads/ktx-reserve-final.zip) | 맥·윈도우 겸용 프로그램 + `사용설명서.txt` |
+| [`downloads/KTX_WINDOWS_FIXED.zip`](downloads/KTX_WINDOWS_FIXED.zip) | 윈도우용 (영문 파일명, 설명서 `MANUAL.txt`) |
+| [`ktx_reserve/사용설명서.txt`](ktx_reserve/사용설명서.txt) | 설치·실행 설명서 (v1.7) |
+| [`old/`](old/README.md) | 이전 설명서·배포본 (기록용) |
 
 - **가장 쉬운 방법**: `git clone https://github.com/judeeyo/myAIproject.git` 후 맥은 `start.command`, 윈도우는 `start.bat` 더블클릭
   (처음엔 자동 설치 → 설정 화면이 브라우저에 바로 열림)
-- 맥: 압축 해제 → 폴더에서 `bash setup.sh` (처음 한 번) → `bash start_booking.sh`
-- 윈도우: 압축 해제 → `setup.bat` (처음 한 번) → `start_booking.bat`
+- ZIP으로 받았다면 압축을 풀고 같은 파일(`start.command` / `start.bat`)을 더블클릭
+- 화면 사용법은 [사용설명서](ktx_reserve/사용설명서.txt) 참고
 - 필요한 것: Python 3.11 이상, Git
 
-### ⚠️ 쓰기 전에 꼭 바꿀 것
+### `start_booking` 파일로 실행할 경우 (화면 없이)
 
 `start_booking.sh` / `start_booking.bat` 에 **2026-11-06 일정과 자동 결제**가 들어 있습니다.
 
@@ -90,8 +90,12 @@ ktx_reserve/
   setup.sh / setup.bat      설치 (가상환경 + 의존성 + 테스트)
   run.sh / run.bat          실행 (옵션 직접 지정)
   start_booking.sh / .bat   정해 둔 일정으로 실행
-  사용설명서.txt, README.md 설명서
+  사용설명서.txt             설명서 (v1.7)
+  ui_server.py, ui/          설정 화면
+  launch.sh / launch.bat     첫 실행 자동 설치 + 화면 실행
   THIRD_PARTY.md            pykorail 사본 출처·라이선스
   tests/                    자동 테스트
-downloads/                  배포용 ZIP과 설명서
+downloads/                  배포용 ZIP
+old/                        이전 설명서·배포본
+start.command / start.bat   원클릭 실행
 ```

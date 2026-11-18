@@ -5,7 +5,7 @@ KTX 잔여석을 주기적으로 조회해 좌석이 확보되는 즉시 예약�
 [ktx-auto](https://github.com/ShinbaramEbaksa/ktx-auto)를 기반으로 개선한 프로젝트로, 코레일톡 7.1.0 업데이트 이후 동작하지 않던 원본을 Python으로 재구현하고 설치·알림·결제 기능을 확장했습니다.
 
 - 인수인계: [HANDOVER.md](HANDOVER.md)
-- 설명서: [사용설명서.txt](ktx_reserve/사용설명서.txt) · [PDF](downloads/ktx-windows-fixed/KTX_MANUAL.pdf)
+- 설명서: [사용설명서.txt](ktx_reserve/사용설명서.txt) (v1.7) · 이전 자료: [old/](old/README.md)
 - 배포본: [macOS](downloads/ktx-reserve-final.zip) · [Windows](downloads/KTX_WINDOWS_FIXED.zip)
 
 ![KTX 자동 예매 화면](docs/ui-screenshot.png)
@@ -37,6 +37,7 @@ CLI로 직접 실행하려면 `ktx_reserve/run.sh --help`를 참고하세요.
 
 | 버전 | 날짜 | 내용 |
 |---|---|---|
+| v1.7 | 2026-11-18 | UI 가독성 개선(본문 글꼴·대비·간격, 다크 모드 테두리), 비밀번호 입력값 유지, 기본 경로 서울→동대구, 빈 역·날짜 입력 검증, 설명서 개편(이전 자료 `old/`로 이동) |
 | v1.6 | 2026-11-18 | 원클릭 실행 (`start.command` / `start.bat`), 첫 실행 자동 설치 |
 | v1.5 | 2026-11-18 | 로컬 웹 UI 추가 (픽셀 아트 스타일) |
 | v1.4 | 2026-11-18 | 브랜치 통합, 문서 정리 |
