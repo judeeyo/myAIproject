@@ -74,7 +74,10 @@ $("swapBtn").addEventListener("click", () => {
   refresh();
 });
 
-form.addEventListener("input", refresh);
+form.addEventListener("input", (e) => {
+  if (e.target.classList) e.target.classList.remove("invalid");
+  refresh();
+});
 
 /* ---------- 화면 갱신 ---------- */
 
@@ -110,6 +113,18 @@ function setLocked(lock) {
 function showErrors(message) {
   $("errors").textContent = message || "";
   $("errors").hidden = !message;
+  if (message) $("errors").scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+
+/* 빈 역 이름 등 서버에 보내기 전에 막을 수 있는 실수 */
+function checkForm() {
+  form.querySelectorAll(".invalid").forEach((el) => el.classList.remove("invalid"));
+  const missing = [["dep", "출발역"], ["arr", "도착역"], ["date", "출발일"]].filter(([id]) => !$(id).value.trim());
+  if (!missing.length) return true;
+  missing.forEach(([id]) => $(id).classList.add("invalid"));
+  $(missing[0][0]).focus();
+  showErrors(`${missing.map(([, label]) => label).join(", ")}을 입력하세요.`);
+  return false;
 }
 
 /* ---------- 설정 기억 (비밀번호·카드는 저장하지 않음) ---------- */
@@ -127,7 +142,7 @@ function loadSettings() {
   let data = null;
   try { data = JSON.parse(localStorage.getItem(STORE_KEY) || "null"); } catch (_) { data = null; }
   if (data) {
-    SAVED_FIELDS.forEach((k) => { if (typeof data[k] === "string") $(k).value = data[k]; });
+    SAVED_FIELDS.forEach((k) => { if (typeof data[k] === "string" && data[k].trim()) $(k).value = data[k]; });
     ["adult", "child", "senior"].forEach((k) => { if (Number.isFinite(data[k])) setStep(k, data[k]); });
     ["mode", "train", "seat", "adjacent"].forEach((k) => { if (data[k]) setSeg(k, data[k]); });
     if (data.mode === "pay") setSeg("mode", "reserve"); // 결제 모드는 매번 직접 선택
@@ -174,6 +189,7 @@ function payload(mode) {
 
 async function start(mode) {
   showErrors("");
+  if (!checkForm()) return;
   if (mode === "pay" && !confirm("좌석을 잡으면 카드 결제까지 자동으로 진행합니다. 시작할까요?")) return;
   try {
     await api("/api/start", payload(mode));

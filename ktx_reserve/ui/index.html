@@ -71,9 +71,9 @@
     <section class="card">
       <header class="card-head"><span class="num">3</span><h2>여정</h2></header>
       <div class="route">
-        <label class="field"><span>출발역</span><input name="dep" id="dep" list="stationList" placeholder="서울"></label>
+        <label class="field"><span>출발역</span><input name="dep" id="dep" list="stationList" value="서울" placeholder="예: 서울" required></label>
         <button type="button" class="icon-btn" id="swapBtn" title="출발·도착 바꾸기" aria-label="출발·도착 바꾸기">⇄</button>
-        <label class="field"><span>도착역</span><input name="arr" id="arr" list="stationList" placeholder="부산"></label>
+        <label class="field"><span>도착역</span><input name="arr" id="arr" list="stationList" value="동대구" placeholder="예: 동대구" required></label>
       </div>
       <datalist id="stationList"></datalist>
       <div class="grid three">

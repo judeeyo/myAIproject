@@ -27,6 +27,8 @@ class BuildArgsTest(unittest.TestCase):
     def test_rejects_invalid_input(self):
         cases = [
             payload(arr="서울"),
+            payload(dep=""),
+            payload(arr="  "),
             payload(adult=0),
             payload(mode="reserve"),  # 로그인 정보 없음
             payload(mode="hack"),

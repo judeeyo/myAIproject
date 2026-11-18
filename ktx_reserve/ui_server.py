@@ -292,6 +292,10 @@ def build_args(payload: dict) -> tuple[argparse.Namespace, object, str]:
         value = payload.get(key, default)
         return str(value).strip() if value is not None else default
 
+    for key, label in (("dep", "출발역"), ("arr", "도착역"), ("date", "출발일")):
+        if not text(key):
+            raise ValueError(f"{label}을 입력하세요")
+
     argv = [
         "--dep", text("dep"), "--arr", text("arr"), "--date", text("date"),
         "--from", text("from"), "--to", text("to"),

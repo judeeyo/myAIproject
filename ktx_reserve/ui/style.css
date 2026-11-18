@@ -170,6 +170,8 @@ input {
   box-shadow: inset 2px 2px 0 var(--bg-dot);
   outline: none;
 }
+input::placeholder { color: var(--muted); opacity: 0.55; font-style: italic; }
+input.invalid { border-color: var(--err); box-shadow: inset 2px 2px 0 var(--bg-dot), 0 0 0 2px var(--err); }
 input:focus { border-color: var(--blue); box-shadow: inset 2px 2px 0 var(--bg-dot), 0 0 0 2px var(--sky); }
 input[type="date"], input[type="time"] { padding: 7px 8px; }
 input::-webkit-calendar-picker-indicator { cursor: pointer; }
