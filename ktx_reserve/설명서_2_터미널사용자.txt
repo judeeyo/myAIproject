@@ -1,0 +1,170 @@
+﻿KTX 자동 예매 - 터미널 사용자 설명서 (v1.7)
+
+Mac 터미널이나 Windows PowerShell을 쓸 줄 아는 분을 위한 설명서입니다.
+명령은 한 줄씩 복사해서 실행하세요.
+화면 사용법은 사용설명서.txt(Windows ZIP은 MANUAL.txt)를 보세요.
+
+
+==============================================================
+1. 필요한 것
+==============================================================
+
+  Python 3.11 이상, Git
+
+  Mac (Homebrew 사용 시)
+    brew install python@3.13 git
+
+  Windows PowerShell
+    winget install --id Python.Python.3.13 -e --source winget
+    winget install --id Git.Git -e --source winget
+    설치 후 PowerShell을 닫고 새로 엽니다.
+
+  확인
+    Mac:     python3 --version ; git --version
+    Windows: py -3.13 --version ; git --version
+
+
+==============================================================
+2. 설치와 실행
+==============================================================
+
+  Mac
+    git clone https://github.com/judeeyo/myAIproject.git
+    cd myAIproject
+    ./start.sh
+
+  Windows PowerShell
+    git clone https://github.com/judeeyo/myAIproject.git
+    cd myAIproject
+    .\start.bat
+
+  처음 실행하면 ktx_reserve/.venv 가상환경을 만들고 의존성 설치와 자동 테스트를 한 뒤
+  설정 화면(http://127.0.0.1:3939)을 브라우저에 엽니다. 다음부터는 설치를 건너뜁니다.
+  requirements.txt가 바뀌면 다음 실행 때 자동으로 다시 설치합니다.
+
+  종료: 실행 중인 창에서 Ctrl+C
+
+
+==============================================================
+3. 업데이트
+==============================================================
+
+  cd myAIproject
+  git pull
+  ./start.sh          (Windows: .\start.bat)
+
+  git pull에서 "local changes would be overwritten"이 나오면 직접 고친 파일이 있는 것입니다.
+    git stash
+    git pull
+  고친 내용을 되살리려면 git stash pop
+
+
+==============================================================
+4. 개별 스크립트 (ktx_reserve 폴더 안)
+==============================================================
+
+  Mac                         Windows (PowerShell)        하는 일
+  bash setup.sh               .\setup.bat                 가상환경, 의존성 설치, 테스트
+  bash ui.sh                  .\ui.bat                    설정 화면만 실행
+  bash run.sh [옵션]          .\run.bat [옵션]            화면 없이 터미널에서 예매
+  bash start_booking.sh       .\start_booking.bat         파일에 적어 둔 일정으로 예매
+
+  가상환경이 꼬였으면 ktx_reserve/.venv 폴더를 지우거나 이름을 바꾸고 다시 실행합니다.
+
+
+==============================================================
+5. 터미널에서 직접 예매 (run.sh / run.bat)
+==============================================================
+
+  예시
+    bash run.sh --dep 서울 --arr 동대구 --date 2026-12-01 --from 13:00 --to 15:00 --adult 2 --adjacent
+
+  조회만 확인 (로그인·예약 없음)
+    bash run.sh --check --dep 서울 --arr 동대구 --date 2026-12-01 --from 13:00 --to 15:00
+
+  주요 옵션
+    --dep / --arr                 출발역 / 도착역 (코레일 표기)
+    --date                        출발일 (2026-12-01)
+    --from / --to                 출발 시간대 (13:00 ~ 15:00)
+    --adult / --child / --senior  인원 (기본 1 / 0 / 0)
+    --train                       ktx, all, saemaeul, mugunghwa, itx-cheongchun (기본 ktx)
+    --seat                        general-only, general-first, special-only, special-first
+    --adjacent                    2명 이상일 때 붙은 자리만
+    --trains 105,107              이 열차번호만
+    --interval-min / --interval-max   조회 간격 초 (기본 1 / 2, 최소 0.5)
+    --pay                         예약 후 카드 결제 (실행 중 카드 정보 입력)
+    --dry-run                     빈자리를 찾으면 예약하지 않고 멈춤
+    --demo                        코레일 접속 없이 모의 실행
+    --check                       조회만 하고 끝냄
+  전체 목록: bash run.sh --help
+
+  아이디·비밀번호는 실행 중에 물어봅니다. 비밀번호는 화면에 표시되지 않습니다.
+
+
+==============================================================
+6. 환경변수
+==============================================================
+
+  변수                 기본값              설명
+  PORT                 3939                설정 화면 포트
+  NO_OPEN=1            (없음)              브라우저 자동 열기 끔
+  KORAIL_ID            (없음)              코레일 아이디 미리 지정
+  KORAIL_PASSWORD      (없음)              코레일 비밀번호 미리 지정
+  KTX_STATE_DIR        ~/.ktx_reserve      기기 ID, Discord 설정 보관 폴더
+  DISCORD_WEBHOOK_URL  (없음)              Discord 웹훅 주소 (파일 설정 대신)
+
+  Mac 예시
+    PORT=4000 ./start.sh
+    KORAIL_ID=010-1234-5678 bash ktx_reserve/run.sh --dep 서울 --arr 부산 --date 2026-12-01 --from 08:00 --to 12:00
+
+  Windows PowerShell 예시
+    $env:PORT = "4000"; .\start.bat
+    $env:KORAIL_ID = "010-1234-5678"
+
+  KORAIL_PASSWORD를 셸 설정 파일(.zshrc 등)에 적어 두면 평문으로 남습니다. 권장하지 않습니다.
+
+
+==============================================================
+7. Discord 알림
+==============================================================
+
+  Discord 채널 편집 → 연동 → 웹훅 → 새 웹훅 → URL 복사 후
+
+  Mac (ktx_reserve 폴더)
+    .venv/bin/python discord_notify.py --setup
+    .venv/bin/python discord_notify.py --test
+
+  Windows PowerShell (ktx_reserve 폴더)
+    .\discord.bat --setup
+    .\discord.bat --test
+
+  웹훅 주소는 KTX_STATE_DIR/discord.json에 저장됩니다. 카드 정보와 예약번호는 보내지 않습니다.
+
+
+==============================================================
+8. 테스트
+==============================================================
+
+  cd ktx_reserve
+  Mac:     .venv/bin/python -B -m unittest discover -s tests -v
+  Windows: .\.venv\Scripts\python.exe -B -m unittest discover -s tests -v
+
+  코레일에 접속하지 않는 테스트입니다. 실제 서버 확인은 run.sh --check 로 합니다.
+
+
+==============================================================
+9. 문제 해결
+==============================================================
+
+  - 포트 3939를 다른 프로그램이 사용 중
+    PORT=4000 ./start.sh (Windows: $env:PORT = "4000"; .\start.bat)
+  - PowerShell에서 스크립트 실행이 막힌다
+    .bat 파일은 실행 정책과 관계없이 실행됩니다. .\start.bat 처럼 앞에 .\ 를 붙이세요.
+  - -8204 (앱 버전 거절)
+    코레일 앱 업데이트로 막힌 상태입니다. git pull로 새 버전이 나왔는지 확인하세요.
+  - 기기 ID를 새로 만들고 싶다
+    KTX_STATE_DIR(기본 ~/.ktx_reserve)의 device.json을 지웁니다.
+    자주 바꾸면 매번 다른 기기로 보이므로 권장하지 않습니다.
+
+  조회 간격을 기본값보다 줄이지 마세요. 코레일은 매크로 적발 시 1회 30분, 2회 1개월 예매 정지,
+  3회 강제 탈퇴를 안내합니다. 본인 탑승용으로만 쓰세요.

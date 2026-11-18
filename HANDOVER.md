@@ -6,9 +6,11 @@
 
 | 받을 파일 | 내용 |
 |---|---|
-| [`downloads/ktx-reserve-final.zip`](downloads/ktx-reserve-final.zip) | 맥·윈도우 겸용 프로그램 + `사용설명서.txt` |
-| [`downloads/KTX_WINDOWS_FIXED.zip`](downloads/KTX_WINDOWS_FIXED.zip) | 윈도우용 (영문 파일명, 설명서 `MANUAL.txt`) |
-| [`ktx_reserve/사용설명서.txt`](ktx_reserve/사용설명서.txt) | 설치·실행 설명서 (v1.7) |
+| [`downloads/ktx-reserve-final.zip`](downloads/ktx-reserve-final.zip) | 맥·윈도우 겸용 프로그램 + 설명서 3종 |
+| [`downloads/KTX_WINDOWS_FIXED.zip`](downloads/KTX_WINDOWS_FIXED.zip) | 윈도우용 (영문 파일명, 설명서 `MANUAL_BEGINNER.txt`·`MANUAL_TERMINAL.txt`·`MANUAL.txt`) |
+| [`ktx_reserve/설명서_1_처음사용자.txt`](ktx_reserve/설명서_1_처음사용자.txt) | 명령어를 모르는 사용자용: 내려받기 → 압축 풀기 → 더블클릭 |
+| [`ktx_reserve/설명서_2_터미널사용자.txt`](ktx_reserve/설명서_2_터미널사용자.txt) | 터미널(Mac)·PowerShell(Windows) 사용자용: 명령어, 옵션, 환경변수 |
+| [`ktx_reserve/사용설명서.txt`](ktx_reserve/사용설명서.txt) | 화면 사용법 전체 (v1.7) |
 | [`old/`](old/README.md) | 이전 설명서·배포본 (기록용) |
 
 - **가장 쉬운 방법**: `git clone https://github.com/judeeyo/myAIproject.git` 후 맥은 `start.command`, 윈도우는 `start.bat` 더블클릭
@@ -90,7 +92,9 @@ ktx_reserve/
   setup.sh / setup.bat      설치 (가상환경 + 의존성 + 테스트)
   run.sh / run.bat          실행 (옵션 직접 지정)
   start_booking.sh / .bat   정해 둔 일정으로 실행
-  사용설명서.txt             설명서 (v1.7)
+  사용설명서.txt             화면 사용법 전체
+  설명서_1_처음사용자.txt     처음 사용자용
+  설명서_2_터미널사용자.txt   터미널 사용자용
   ui_server.py, ui/          설정 화면
   launch.sh / launch.bat     첫 실행 자동 설치 + 화면 실행
   THIRD_PARTY.md            pykorail 사본 출처·라이선스

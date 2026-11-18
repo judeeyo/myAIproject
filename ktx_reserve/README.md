@@ -1,7 +1,7 @@
 # KTX 자동 예매 (v1.7)
 
 - 실행: Mac `start.command`, Windows `start.bat` 더블클릭. 처음엔 자동 설치 후 설정 화면이 열립니다.
-- 사용법: [사용설명서.txt](사용설명서.txt)
+- 설명서: [처음 사용자용](설명서_1_처음사용자.txt) · [터미널 사용자용](설명서_2_터미널사용자.txt) · [화면 사용법 전체](사용설명서.txt)
 - 터미널 실행: `bash run.sh --help` (Windows `run.bat --help`)
 - 테스트: `.venv/bin/python -B -m unittest discover -s tests`
 
