@@ -11,6 +11,8 @@
 | [`ktx_reserve/사용설명서.txt`](ktx_reserve/사용설명서.txt) | 설치·실행 설명서 |
 | [`downloads/ktx-windows-fixed/KTX_MANUAL.pdf`](downloads/ktx-windows-fixed/KTX_MANUAL.pdf) | 설명서 PDF |
 
+- **가장 쉬운 방법**: `git clone https://github.com/judeeyo/myAIproject.git` 후 맥은 `start.command`, 윈도우는 `start.bat` 더블클릭
+  (처음엔 자동 설치 → 설정 화면이 브라우저에 바로 열림)
 - 맥: 압축 해제 → 폴더에서 `bash setup.sh` (처음 한 번) → `bash start_booking.sh`
 - 윈도우: 압축 해제 → `setup.bat` (처음 한 번) → `start_booking.bat`
 - 필요한 것: Python 3.11 이상, Git

@@ -448,15 +448,30 @@ class Handler(BaseHTTPRequestHandler):
         return self._json(HTTPStatus.NOT_FOUND, {"error": "not found"})
 
 
+def already_running(url: str) -> bool:
+    """같은 포트에 이 화면이 이미 떠 있는지 확인한다."""
+    import urllib.request
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))  # 로컬 주소는 프록시를 타지 않게
+    try:
+        with opener.open(url + "/api/config", timeout=2) as res:
+            return "stations" in json.loads(res.read())
+    except Exception:
+        return False
+
+
 def main() -> int:
     port = int(os.environ.get("PORT", "3939"))
+    url = f"http://{HOST}:{port}"
     try:
         server = ThreadingHTTPServer((HOST, port), Handler)
     except OSError:
-        print(f"포트 {port}를 사용할 수 없습니다. 이미 실행 중이면 그 창을 쓰거나 PORT=4000 처럼 바꿔 실행하세요.",
-              file=sys.stderr)
+        if already_running(url):
+            print(f"이미 실행 중입니다. 화면을 다시 엽니다: {url}")
+            if os.environ.get("NO_OPEN") != "1":
+                webbrowser.open(url)
+            return 0
+        print(f"포트 {port}를 다른 프로그램이 쓰고 있습니다. PORT=4000 처럼 바꿔 실행하세요.", file=sys.stderr)
         return 2
-    url = f"http://{HOST}:{port}"
     print(f"KTX 자동 예매 화면: {url}\n종료하려면 Ctrl+C", flush=True)
     if os.environ.get("NO_OPEN") != "1":
         threading.Timer(0.5, lambda: webbrowser.open(url)).start()

@@ -2,7 +2,7 @@
 
 처음 사용하는 분은 **[사용설명서.txt](사용설명서.txt)**를 먼저 읽으세요.
 
-- **화면으로 실행(추천)**: 설치 후 Mac `bash ui.sh` / Windows `ui.bat` → 브라우저에 설정 화면이 열립니다
+- **가장 쉬운 실행(추천)**: Mac `start.command` / Windows `start.bat` 더블클릭 → 처음엔 자동 설치, 이후 설정 화면이 바로 열립니다
 - Windows: `setup.bat` 설치 후 `start_booking.bat` 실행
 - Mac: `bash setup.sh` 설치 후 `bash start_booking.sh` 실행
 - 기본값: 2026-11-06 서울→동대구, 13:49~13:58, 일반실 성인 2명, 자동 결제 포함

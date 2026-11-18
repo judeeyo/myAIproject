@@ -23,22 +23,21 @@ KTX 잔여석을 주기적으로 조회해 좌석이 확보되는 즉시 예약�
 ## Quick Start
 
 ```bash
-bash setup.sh      # 최초 1회 (Windows: setup.bat)
-bash ui.sh         # 설정 화면 실행 → http://127.0.0.1:3939 (Windows: ui.bat)
+git clone https://github.com/judeeyo/myAIproject.git
+cd myAIproject
+./start.sh
 ```
 
-터미널에서 직접 실행할 수도 있습니다.
+첫 실행 시 의존성을 자동으로 설치하고, 이후 설정 화면(`http://127.0.0.1:3939`)이 브라우저에 바로 열립니다.
+Finder에서는 `start.command`, Windows에서는 `start.bat`을 더블클릭해도 됩니다.
 
-```bash
-bash run.sh --dep 서울 --arr 동대구 --date 2026-12-01 --from 13:00 --to 15:00 --adult 2
-```
-
-`--check`로 로그인 없이 조회만 확인할 수 있습니다. 전체 옵션은 `bash run.sh --help`를 참고하세요.
+CLI로 직접 실행하려면 `ktx_reserve/run.sh --help`를 참고하세요.
 
 ## Changelog
 
 | 버전 | 날짜 | 내용 |
 |---|---|---|
+| v1.6 | 2026-11-18 | 원클릭 실행 (`start.command` / `start.bat`), 첫 실행 자동 설치 |
 | v1.5 | 2026-11-18 | 로컬 웹 UI 추가 (픽셀 아트 스타일) |
 | v1.4 | 2026-11-18 | 브랜치 통합, 문서 정리 |
 | v1.3 | 2026-11-05 | 한글 설명서(txt/PDF/HTML), 배포 패키지 |
