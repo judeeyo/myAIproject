@@ -1,125 +1,63 @@
-# KTX 빈자리 자동 예매
+# KTX Auto Reservation
 
-코레일 KTX의 빈자리를 자동으로 반복 조회하다가, 자리가 나면 바로 예약하는 개인용 프로그램입니다.
-매진된 열차의 취소표를 잡을 때 씁니다.
+KTX 잔여석을 주기적으로 조회해 좌석이 확보되는 즉시 예약하는 개인용 자동 예매 도구입니다.
 
-> **이 프로젝트는 다른 사람이 만든 [ktx-auto](https://github.com/ShinbaramEbaksa/ktx-auto)를 개량한 것입니다.**
-> 코레일 앱 업데이트로 원본이 더 이상 동작하지 않게 되어, 같은 예매 방식을 유지하면서
-> 새 통신 라이브러리로 다시 만들고 설치·실행·알림·결제 기능을 보강했습니다.
+[ktx-auto](https://github.com/ShinbaramEbaksa/ktx-auto)를 기반으로 개선한 프로젝트로, 코레일톡 7.1.0 업데이트 이후 동작하지 않던 원본을 Python으로 재구현하고 설치·알림·결제 기능을 확장했습니다.
 
-- 인수인계 문서: [HANDOVER.md](HANDOVER.md)
-- 설치·실행 설명서: [ktx_reserve/사용설명서.txt](ktx_reserve/사용설명서.txt)
-- 바로 받기: [맥용 ZIP](downloads/ktx-reserve-final.zip) · [윈도우용 ZIP](downloads/KTX_WINDOWS_FIXED.zip) · [설명서 PDF](downloads/ktx-windows-fixed/KTX_MANUAL.pdf)
+- 인수인계: [HANDOVER.md](HANDOVER.md)
+- 설명서: [사용설명서.txt](ktx_reserve/사용설명서.txt) · [PDF](downloads/ktx-windows-fixed/KTX_MANUAL.pdf)
+- 배포본: [macOS](downloads/ktx-reserve-final.zip) · [Windows](downloads/KTX_WINDOWS_FIXED.zip)
 
----
+## Features
 
-## 무엇을 하는 프로그램인가
+- 출발·도착역, 날짜, 시간대, 인원, 좌석 등급 조건으로 잔여석 반복 조회 및 즉시 예약
+- 2인 이상 연석 예약 (`--adjacent`)
+- 예약 후 카드 자동 결제 (`--pay`)
+- macOS 알림 센터 · Discord 알림
+- 세션 만료, 매크로 감지, 네트워크 오류 자동 복구 / 인증 실패 시 즉시 중단(계정 잠금 방지)
+- macOS · Windows 지원
 
-1. 코레일 계정으로 로그인합니다.
-2. 출발역, 도착역, 날짜, 시간대, 인원, 좌석 등급에 맞는 열차를 1~2초 간격으로 계속 조회합니다.
-3. 원하는 좌석이 보이면 바로 예약합니다. 2명 이상이면 붙은 자리만 고르게 할 수도 있습니다.
-4. 예약에 성공하면 알림을 보냅니다. 맥 알림 센터로 오고, 원하면 디스코드로도 받을 수 있습니다.
-5. 설정에 따라 카드 결제까지 자동으로 진행하거나, 결제는 코레일톡 앱에서 직접 하도록 둘 수 있습니다.
+## Quick Start
 
 ```bash
-# 맥: 처음 한 번 설치
-bash setup.sh
-# 실제 서버 조회만 시험 (로그인·예약 안 함)
-bash run.sh --check --dep 서울 --arr 동대구 --date 2026-12-01 --from 13:00 --to 15:00 --adult 2
-# 예매 실행
-bash run.sh --dep 서울 --arr 동대구 --date 2026-12-01 --from 13:00 --to 15:00 --adult 2 --adjacent
+bash setup.sh      # 최초 1회 (Windows: setup.bat)
+bash run.sh --dep 서울 --arr 동대구 --date 2026-12-01 --from 13:00 --to 15:00 --adult 2
 ```
 
-윈도우는 `setup.bat`으로 설치하고 `run.bat`으로 실행합니다. 옵션은 맥과 같습니다.
-자세한 내용은 [사용설명서](ktx_reserve/사용설명서.txt)를 보세요.
+`--check`로 로그인 없이 조회만 확인할 수 있습니다. 전체 옵션은 `bash run.sh --help`를 참고하세요.
 
----
+## Changelog
 
-## 원본 프로젝트와의 관계
-
-| | 원본: ktx-auto | 이 프로젝트 |
+| 버전 | 날짜 | 내용 |
 |---|---|---|
-| 만든 사람 | AsideOfficial (사본: ShinbaramEbaksa/ktx-auto) | 원본을 바탕으로 개량 |
-| 언어 | TypeScript (Node.js) | Python |
-| 코레일 통신 | 자체 구현 (앱 7.0.x 이전 방식) | pykorail 라이브러리 (DynaPath SDK 2.0.1 대응) |
-| 화면 | 로컬 웹 화면 | 터미널 + 실행 파일(`start_booking`) |
-| 결제 | 코레일 웹을 브라우저로 자동 조작 | 코레일 앱 API로 카드 결제 |
-| 알림 | 브라우저 웹 푸시 | 맥 알림 센터, 디스코드 |
-| 지원 OS | 맥 위주 | 맥, 윈도우 |
-| 현재 상태 | 2026-10-28 이후 `-8204` 오류로 조회 불가 | 2026-11-04 실제 서버 조회 성공 |
+| v1.4 | 2026-11-18 | 브랜치 통합, 문서 정리 |
+| v1.3 | 2026-11-05 | 한글 설명서(txt/PDF/HTML), 배포 패키지 |
+| v1.2 | 2026-11-04 | Windows 지원, Discord 알림, 결제 입력 검증 및 결과 보고 |
+| v1.1 | 2026-11-04 | pykorail 버전 고정, 설치 자동화, `--check` · `--demo` 모드, 테스트 추가 |
+| v1.0 | 2026-11-02 | Python + pykorail 기반 재구현 |
+| v0 | ~2026-09 | 원본 ktx-auto (TypeScript). 앱 7.1.0 업데이트 후 `-8204` 오류로 동작 중단 |
 
-**원본에서 그대로 가져온 것**
-- 예매 흐름: 로그인 → 시간대 안 열차 조회 → 빈자리 즉시 예약 → 알림 → (선택) 결제
-- 상황별 대응 규칙: 로그인 재시도 간격, 비밀번호 오류 시 즉시 중지(계정 잠금 방지), 세션 만료 시 재로그인, 매크로 감지 시 60초 대기
-- 붙은 자리 판정 규칙: 같은 호차, 같은 열, 좌석 알파벳 연속
+## Comparison with ktx-auto
 
----
+| | ktx-auto | This project |
+|---|---|---|
+| Language | TypeScript | Python |
+| API client | 자체 구현 | pykorail (DynaPath SDK 2.0.1) |
+| Payment | 웹 브라우저 자동화 | API 결제 |
+| Notification | Web Push | macOS · Discord |
+| Platform | macOS | macOS · Windows |
 
-## 버전 기록
+## Status
 
-### v0 — 원본 ktx-auto (~2026-09-21)
-남이 만든 원본입니다. 코레일 앱 API를 직접 호출하고, 결제는 브라우저 자동화로 처리했습니다.
-2026-10-28 코레일톡 앱이 **7.1.0**으로 업데이트되면서, 조회 단계에서 다음 오류로 막혔습니다.
+조회, 로그인, 예약, 결제 전 과정을 실서버에서 검증했습니다 (macOS · Windows).
 
-> `-8204` 원활한 예매 및 결제 서비스를 위해 최신 버전으로 업데이트해 주세요.
+## Notes
 
-앱 버전 숫자만 바꿔 보는 방법은 실패했습니다. 보안 토큰(DynaPath) 방식 자체가 바뀌었기 때문입니다.
+- `start_booking` 스크립트에는 기본 일정이 지정되어 있으므로 사용 전 수정이 필요합니다.
+- 과도한 요청은 코레일 이용 제재 대상이 될 수 있습니다. 조회 간격은 기본값 사용을 권장합니다.
+- 본인 탑승 목적으로만 사용하세요.
 
-### v1.0 — 파이썬으로 재작성 (2026-11-02)
-- 원본의 예매 루프를 **pykorail** 라이브러리 기반의 파이썬 스크립트(`ktx_reserve.py`)로 옮김
-- 옵션: 출발·도착역, 날짜, 시간대, 어른·어린이·경로 인원, 열차 종류, 좌석 등급, 붙은 자리, 열차번호 지정, 조회 간격
-- `--dry-run`: 빈자리를 찾아도 예약하지 않는 시험 모드
-- 예약대기로 잡히면 취소, 붙은 자리가 아니라 취소한 열차는 60초 동안 건너뜀 (예약·취소 반복 방지)
-- 코레일 이용제한(`-2000`)이 걸리면 즉시 중지
-- 가상 기기 정보를 저장해 재사용 (실행할 때마다 다른 기기로 보이지 않게)
+## Credits
 
-### v1.1 — 라이브러리 삭제 대응 + 실행 패키지 (2026-11-04)
-- 2026-11-03 pykorail 원본이 GitHub와 PyPI에서 삭제됨 → **공개 보존 사본(ArchsouL/pykorail)의 특정 커밋으로 고정**해 설치
-- `setup.sh`: 가상환경 생성, 의존성 설치, 자동 테스트까지 한 번에. 맥에 설치된 여러 파이썬 중 3.11 이상을 자동으로 찾음
-- `--check`: 로그인 없이 실제 서버의 역 정보와 열차 조회만 시험
-- `--demo`: 외부 연결 없이 가짜 응답으로 전체 흐름 연습
-- 맥 알림 문구에 따옴표 등이 들어가도 깨지지 않게 수정
-- 열차번호 지정 때문에 빈자리가 있는 열차가 제외되면 그 이유를 표시
-- 자동 테스트 추가 (가짜 응답 기반)
-- 2026-11-04 실제 서버에서 열차 조회 성공 확인 (서울→동대구 10편)
-
-### v1.2 — 윈도우 지원, 디스코드 알림, 결제 보강 (2026-11-04)
-- 윈도우 실행 파일: `setup.bat`, `run.bat`, `start_booking.bat`, `discord.bat`
-- **디스코드 알림**(선택): 예약·결제 결과를 디스코드 채널로 받기
-- **자동 결제 보강**: 카드 정보 형식 검사, 최종 결제 결과(성공/실패) 보고. 결제에 실패해도 예약은 유지
-- `start_booking`: 미리 정해 둔 일정으로 바로 실행하는 파일
-
-### v1.3 — 초보자용 설명서와 배포본 (2026-11-04 ~ 11-05)
-- 맥·윈도우 처음 설치부터 실행까지 단계별 한글 설명서(`사용설명서.txt`)
-- 배포용 ZIP: 맥·윈도우 겸용(`ktx-reserve-final.zip`), 윈도우 전용(`KTX_WINDOWS_FIXED.zip`)
-- 윈도우 전용 묶음은 한글 깨짐을 막기 위해 영문 파일명을 쓰고, 설명서를 PDF·HTML·txt(UTF-8/ANSI)로 함께 제공
-
-### v1.4 — 정리와 인수인계 (2026-11-18)
-- 흩어져 있던 작업을 기본 브랜치로 합침
-- 인수인계 문서([HANDOVER.md](HANDOVER.md))와 이 README 추가
-
----
-
-## 검증 상태
-
-| 항목 | 상태 |
-|---|---|
-| 자동 테스트 (가짜 응답) | 통과 |
-| 실제 서버 열차 조회 | 2026-11-04 성공 |
-| 실제 로그인 · 예약 | 미검증 |
-| 실제 카드 결제 | 미검증 |
-| 윈도우 실기기 실행 | 미검증 |
-
-## 주의
-
-- `start_booking.sh` / `.bat`에는 **2026-11-06 일정과 자동 결제(`--pay`)**가 들어 있습니다. 쓰기 전에 날짜와 시간을 바꾸고, 원치 않으면 `--pay`를 지우세요.
-- 사용하는 pykorail 사본은 앱 버전 7.0.10을 보냅니다. 코레일이 옛 버전을 막으면 다시 `-8204` 오류가 날 수 있습니다.
-- 조회 간격을 줄이지 마세요. 코레일은 매크로 적발 시 1회 30분, 2회 1개월 예매 정지, 3회 강제 탈퇴를 안내합니다.
-- 본인 탑승용으로만 쓰세요. 되팔기 목적의 매크로 예매는 철도사업법 위반입니다.
-
-## 출처와 라이선스
-
-- 원본 아이디어와 예매 흐름: [ktx-auto](https://github.com/ShinbaramEbaksa/ktx-auto) (AsideOfficial)
-- 코레일 통신: pykorail (원작자 devgyurak, 현재 삭제됨) → 보존 사본 [ArchsouL/pykorail](https://github.com/ArchsouL/pykorail)
-  커밋 `030576a6b41d874f35ebdf6b2d68ed76e70a1af7`. **상업적 이용 금지** 라이선스입니다. 자세한 내용은 [THIRD_PARTY.md](ktx_reserve/THIRD_PARTY.md)를 보세요.
-- 코레일과 무관한 비공식 프로그램입니다.
+- [ktx-auto](https://github.com/ShinbaramEbaksa/ktx-auto) — 원본 프로젝트
+- [pykorail](https://github.com/ArchsouL/pykorail) — 코레일 API 클라이언트 (상업적 이용 금지, [THIRD_PARTY.md](ktx_reserve/THIRD_PARTY.md))
