@@ -8,8 +8,11 @@ KTX 잔여석을 주기적으로 조회해 좌석이 확보되는 즉시 예약�
 - 설명서: [사용설명서.txt](ktx_reserve/사용설명서.txt) · [PDF](downloads/ktx-windows-fixed/KTX_MANUAL.pdf)
 - 배포본: [macOS](downloads/ktx-reserve-final.zip) · [Windows](downloads/KTX_WINDOWS_FIXED.zip)
 
+![KTX 자동 예매 화면](docs/ui-screenshot.png)
+
 ## Features
 
+- 로컬 웹 UI (픽셀 아트 스타일, 라이트/다크 모드)
 - 출발·도착역, 날짜, 시간대, 인원, 좌석 등급 조건으로 잔여석 반복 조회 및 즉시 예약
 - 2인 이상 연석 예약 (`--adjacent`)
 - 예약 후 카드 자동 결제 (`--pay`)
@@ -21,6 +24,12 @@ KTX 잔여석을 주기적으로 조회해 좌석이 확보되는 즉시 예약�
 
 ```bash
 bash setup.sh      # 최초 1회 (Windows: setup.bat)
+bash ui.sh         # 설정 화면 실행 → http://127.0.0.1:3939 (Windows: ui.bat)
+```
+
+터미널에서 직접 실행할 수도 있습니다.
+
+```bash
 bash run.sh --dep 서울 --arr 동대구 --date 2026-12-01 --from 13:00 --to 15:00 --adult 2
 ```
 
@@ -30,6 +39,7 @@ bash run.sh --dep 서울 --arr 동대구 --date 2026-12-01 --from 13:00 --to 15:
 
 | 버전 | 날짜 | 내용 |
 |---|---|---|
+| v1.5 | 2026-11-18 | 로컬 웹 UI 추가 (픽셀 아트 스타일) |
 | v1.4 | 2026-11-18 | 브랜치 통합, 문서 정리 |
 | v1.3 | 2026-11-05 | 한글 설명서(txt/PDF/HTML), 배포 패키지 |
 | v1.2 | 2026-11-04 | Windows 지원, Discord 알림, 결제 입력 검증 및 결과 보고 |
@@ -42,6 +52,7 @@ bash run.sh --dep 서울 --arr 동대구 --date 2026-12-01 --from 13:00 --to 15:
 | | ktx-auto | This project |
 |---|---|---|
 | Language | TypeScript | Python |
+| UI | 로컬 웹 (Liquid Glass) | 로컬 웹 (Pixel Art) |
 | API client | 자체 구현 | pykorail (DynaPath SDK 2.0.1) |
 | Payment | 웹 브라우저 자동화 | API 결제 |
 | Notification | Web Push | macOS · Discord |

@@ -24,3 +24,9 @@ The previously blocked smart.letskorail.com domain is now reachable through the
 configured proxy. No login, reservation or payment was attempted; these remain
 unverified. Environment publication and restoration in a fresh task are also
 unverified despite the current instance's successful real query.
+
+# Galmuri font
+
+The web UI bundles Galmuri11 (`ui/fonts/`), copyright 2019–2025 Lee Minseo,
+licensed under the SIL Open Font License 1.1 (`ui/fonts/Galmuri-LICENSE.txt`).
+Source: https://github.com/quiple/galmuri (npm `galmuri` 2.40.3).

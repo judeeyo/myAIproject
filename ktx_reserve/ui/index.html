@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>KTX 자동 예매</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <svg class="brand-train px" viewBox="0 0 24 16" shape-rendering="crispEdges" aria-hidden="true"><rect x="6" y="1" width="12" height="1" class="i"/>
+      <rect x="4" y="2" width="16" height="1" class="i"/>
+      <rect x="3" y="3" width="1" height="10" class="i"/>
+      <rect x="20" y="3" width="1" height="10" class="i"/>
+      <rect x="6" y="2" width="12" height="1" class="b"/>
+      <rect x="4" y="3" width="16" height="10" class="b"/>
+      <rect x="6" y="4" width="12" height="4" class="w"/>
+      <rect x="4" y="9" width="16" height="2" class="u"/>
+      <rect x="5" y="11" width="2" height="1" class="a"/>
+      <rect x="17" y="11" width="2" height="1" class="a"/>
+      <rect x="3" y="13" width="18" height="1" class="i"/>
+      <rect x="6" y="14" width="3" height="1" class="i"/>
+      <rect x="15" y="14" width="3" height="1" class="i"/></svg>
+    <div>
+      <h1>KTX 자동 예매</h1>
+      <p class="sub">빈자리가 나는 순간, 먼저 잡습니다</p>
+    </div>
+  </div>
+  <div class="status-pill" id="statusPill" data-state="idle">
+    <span class="dot" aria-hidden="true"></span><span id="statusText">대기 중</span>
+  </div>
+</header>
+
+<main class="layout">
+  <form id="jobForm" class="column" autocomplete="off" novalidate>
+    <section class="card">
+      <header class="card-head"><span class="num">1</span><h2>코레일 계정</h2></header>
+      <p class="hint">회원번호 · 이메일 · 휴대폰(010-0000-0000). 비밀번호 오류는 바로 멈춥니다 (5회 틀리면 계정 잠김).</p>
+      <div class="grid two">
+        <label class="field"><span>아이디</span><input name="loginId" id="loginId" placeholder="회원번호 · 이메일 · 휴대폰" autocomplete="username"></label>
+        <label class="field"><span>비밀번호</span><input name="loginPassword" id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password"></label>
+      </div>
+      <p class="hint ok" id="envLoginHint" hidden>환경변수에 계정이 설정되어 있어 비워 둬도 됩니다.</p>
+    </section>
+
+    <section class="card">
+      <header class="card-head"><span class="num">2</span><h2>처리 방식</h2></header>
+      <div class="segmented" role="radiogroup" aria-label="처리 방식" data-name="mode">
+        <button type="button" class="seg" role="radio" data-value="reserve" aria-checked="true">예약까지</button>
+        <button type="button" class="seg" role="radio" data-value="pay">결제까지</button>
+        <button type="button" class="seg" role="radio" data-value="dryrun">테스트</button>
+        <button type="button" class="seg" role="radio" data-value="demo">데모</button>
+      </div>
+      <p class="hint" id="modeHint"></p>
+      <div class="inset" id="paymentBox" hidden>
+        <p class="hint">카드 정보는 이 화면과 실행 중 메모리에만 있고 저장하지 않습니다. 결제에 실패해도 예약은 유지됩니다.</p>
+        <div class="grid two">
+          <label class="field"><span>카드번호</span><input id="cardNumber" inputmode="numeric" placeholder="0000-0000-0000-0000" autocomplete="off"></label>
+          <label class="field"><span>비밀번호 앞 2자리</span><input id="cardPassword" type="password" inputmode="numeric" maxlength="2" placeholder="••" autocomplete="off"></label>
+        </div>
+        <div class="grid two">
+          <label class="field"><span>유효기간 YYMM</span><input id="cardExpire" inputmode="numeric" maxlength="4" placeholder="2812" autocomplete="off"></label>
+          <label class="field"><span>생년월일 YYMMDD</span><input id="cardBirth" type="password" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="off"></label>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <header class="card-head"><span class="num">3</span><h2>여정</h2></header>
+      <div class="route">
+        <label class="field"><span>출발역</span><input name="dep" id="dep" list="stationList" placeholder="서울"></label>
+        <button type="button" class="icon-btn" id="swapBtn" title="출발·도착 바꾸기" aria-label="출발·도착 바꾸기">⇄</button>
+        <label class="field"><span>도착역</span><input name="arr" id="arr" list="stationList" placeholder="부산"></label>
+      </div>
+      <datalist id="stationList"></datalist>
+      <div class="grid three">
+        <label class="field"><span>출발일</span><input name="date" id="date" type="date"></label>
+        <label class="field"><span>이 시각부터</span><input name="from" id="from" type="time" value="08:00"></label>
+        <label class="field"><span>이 시각까지</span><input name="to" id="to" type="time" value="12:00"></label>
+      </div>
+      <div class="steppers">
+        <div class="stepper" data-name="adult" data-min="0" data-max="9" data-value="1">
+          <span class="stepper-label">어른</span>
+          <div class="stepper-ctl"><button type="button" class="dec" aria-label="어른 감소">−</button><output>1</output><button type="button" class="inc" aria-label="어른 증가">+</button></div>
+        </div>
+        <div class="stepper" data-name="child" data-min="0" data-max="9" data-value="0">
+          <span class="stepper-label">어린이</span>
+          <div class="stepper-ctl"><button type="button" class="dec" aria-label="어린이 감소">−</button><output>0</output><button type="button" class="inc" aria-label="어린이 증가">+</button></div>
+        </div>
+        <div class="stepper" data-name="senior" data-min="0" data-max="9" data-value="0">
+          <span class="stepper-label">경로</span>
+          <div class="stepper-ctl"><button type="button" class="dec" aria-label="경로 감소">−</button><output>0</output><button type="button" class="inc" aria-label="경로 증가">+</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <header class="card-head"><span class="num">4</span><h2>조건</h2></header>
+      <div class="field-row"><span class="row-label">열차</span>
+        <div class="segmented" role="radiogroup" aria-label="열차 종류" data-name="train">
+          <button type="button" class="seg" role="radio" data-value="ktx" aria-checked="true">KTX</button>
+          <button type="button" class="seg" role="radio" data-value="all">전체</button>
+          <button type="button" class="seg" role="radio" data-value="saemaeul">새마을</button>
+          <button type="button" class="seg" role="radio" data-value="mugunghwa">무궁화</button>
+          <button type="button" class="seg" role="radio" data-value="itx-cheongchun">ITX-청춘</button>
+        </div>
+      </div>
+      <div class="field-row"><span class="row-label">좌석</span>
+        <div class="segmented" role="radiogroup" aria-label="좌석 등급" data-name="seat">
+          <button type="button" class="seg" role="radio" data-value="general-only">일반실만</button>
+          <button type="button" class="seg" role="radio" data-value="general-first" aria-checked="true">일반실 우선</button>
+          <button type="button" class="seg" role="radio" data-value="special-only">특실만</button>
+          <button type="button" class="seg" role="radio" data-value="special-first">특실 우선</button>
+        </div>
+      </div>
+      <div class="field-row" id="adjacentRow" hidden><span class="row-label">배치</span>
+        <div class="segmented" role="radiogroup" aria-label="좌석 배치" data-name="adjacent">
+          <button type="button" class="seg" role="radio" data-value="any" aria-checked="true">상관없음</button>
+          <button type="button" class="seg" role="radio" data-value="adjacent">붙은 자리만</button>
+        </div>
+      </div>
+      <details class="advanced">
+        <summary>고급 설정</summary>
+        <div class="grid three">
+          <label class="field"><span>열차번호만 (선택)</span><input name="trains" id="trains" inputmode="numeric" placeholder="105,107"></label>
+          <label class="field"><span>조회 간격 최소(초)</span><input name="intervalMin" id="intervalMin" type="number" min="0.5" step="0.5" value="1"></label>
+          <label class="field"><span>조회 간격 최대(초)</span><input name="intervalMax" id="intervalMax" type="number" min="0.5" step="0.5" value="2"></label>
+        </div>
+        <p class="hint">간격을 줄이면 매크로로 제재받을 수 있습니다. 기본값을 권장합니다.</p>
+      </details>
+    </section>
+
+    <div class="errors" id="errors" role="alert" hidden></div>
+  </form>
+
+  <aside class="column side">
+    <section class="card monitor">
+      <div class="hero" id="hero" data-state="idle">
+        <div class="scene" aria-hidden="true">
+          <svg class="runner px" viewBox="0 0 64 16" shape-rendering="crispEdges"><rect x="2" y="3" width="48" height="9" class="b"/>
+      <rect x="50" y="4" width="4" height="8" class="b"/>
+      <rect x="54" y="6" width="4" height="6" class="b"/>
+      <rect x="58" y="8" width="3" height="4" class="b"/>
+      <rect x="2" y="2" width="48" height="1" class="i"/>
+      <rect x="50" y="3" width="4" height="1" class="i"/>
+      <rect x="54" y="5" width="4" height="1" class="i"/>
+      <rect x="58" y="7" width="3" height="1" class="i"/>
+      <rect x="61" y="8" width="1" height="4" class="i"/>
+      <rect x="1" y="3" width="1" height="9" class="i"/>
+      <rect x="2" y="9" width="59" height="2" class="u"/>
+      <rect x="2" y="12" width="60" height="1" class="i"/>
+      <rect x="5" y="5" width="3" height="2" class="w"/>
+      <rect x="10" y="5" width="3" height="2" class="w"/>
+      <rect x="15" y="5" width="3" height="2" class="w"/>
+      <rect x="20" y="5" width="3" height="2" class="w"/>
+      <rect x="25" y="5" width="3" height="2" class="w"/>
+      <rect x="30" y="5" width="3" height="2" class="w"/>
+      <rect x="35" y="5" width="3" height="2" class="w"/>
+      <rect x="40" y="5" width="3" height="2" class="w"/>
+      <rect x="45" y="5" width="3" height="2" class="w"/>
+      <rect x="51" y="5" width="3" height="2" class="w"/>
+      <rect x="55" y="7" width="3" height="1" class="w"/>
+      <rect x="2" y="8" width="59" height="1" class="a"/>
+      <rect x="6" y="13" width="3" height="2" class="i"/>
+      <rect x="12" y="13" width="3" height="2" class="i"/>
+      <rect x="38" y="13" width="3" height="2" class="i"/>
+      <rect x="44" y="13" width="3" height="2" class="i"/>
+      <rect x="54" y="13" width="3" height="2" class="i"/></svg>
+          <div class="track"></div>
+        </div>
+        <div class="hero-state"><span class="hero-dot" aria-hidden="true"></span><span id="statMessage">대기 중</span><span class="cursor" aria-hidden="true">_</span></div>
+        <div class="hero-stats">
+          <div><span class="lbl">조회 횟수</span><span class="big" id="statAttempts">0</span></div>
+          <div><span class="lbl">마지막 조회</span><span class="meta" id="statLastCheck">--:--:--</span></div>
+        </div>
+      </div>
+      <div class="trains" id="trainChips" aria-live="polite"></div>
+      <div class="side-row">
+        <button type="button" class="btn subtle" id="checkBtn">조회만 테스트</button>
+        <button type="button" class="btn subtle" id="notifyBtn">PC 알림 켜기</button>
+      </div>
+    </section>
+    <section class="card log-card">
+      <header class="card-head"><h2>로그</h2><button type="button" class="link" id="clearLog">지우기</button></header>
+      <ol class="log" id="log" aria-live="polite"></ol>
+    </section>
+  </aside>
+</main>
+
+<div class="actionbar" role="region" aria-label="예매 실행">
+  <div class="sum" id="summary" aria-live="polite">
+    <span class="chip" id="sumRoute">서울 → 부산</span>
+    <span class="chip" id="sumPsg">어른 1</span>
+    <span class="chip" id="sumMode">예약까지</span>
+  </div>
+  <div class="acts">
+    <button type="button" class="btn subtle" id="stopBtn" disabled>중지</button>
+    <button type="submit" form="jobForm" class="btn primary" id="startBtn">예매 시작</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" hidden><strong id="toastTitle"></strong><span id="toastBody"></span></div>
+
+<script src="app.js"></script>
+</body>
+</html>
